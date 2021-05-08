@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1 , user-scalable=no">
+    <title>{% block title %}微电影{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static',filename='base/images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='base/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='base/css/bootstrap-movie.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='base/css/animate.css') }}">
+    <style>
+        body {
+            overflow-y: scroll;
+        }
+        .navbar-brand > img {
+            display: inline;
+        }
+        .media {
+            padding: 3px;
+            border: 1px solid #ccc
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+
+<body>
+<!--内容-->
+{% block content %}{% endblock %}
+<!--内容-->
+<!--底部-->
+<footer>
+    <hr>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <p>
+                    {% block copr %}©&nbsp;2021&nbsp;flask_movie&nbsp;京ICP备 12345678号-9{% endblock %}
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+<!--底部-->
+<script src="{{ url_for('static',filename='base/js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static',filename='base/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static',filename='base/js/jquery.singlePageNav.min.js') }}"></script>
+<script src="{{ url_for('static',filename='base/js/wow.min.js') }}"></script>
+<script src="{{ url_for('static',filename='base/lazyload/jquery.lazyload.min.js') }}"></script>
+<script src="{{ url_for('static',filename='base/js/holder.min.js') }}"></script>
+<script>
+    $(function() {
+        new WOW().init();
+    })
+
+</script>
+<script>
+    $(document).ready(function() {
+        $("img.lazy").lazyload({
+            effect: "fadeIn"
+        });
+    });
+
+</script>
+{% block js %}{% endblock %}
+</body>
+</html>
