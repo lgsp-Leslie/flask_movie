@@ -1,7 +1,8 @@
 {% extends 'home_base.html' %}
 {% block title %}电影：{% endblock %}
 {% block css %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home/jwplayer/skins/stormtrooper.css') }}">
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='base/jwplayer/skins/stormtrooper.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -271,7 +272,7 @@
     </script>
 
     <!--播放页面-->
-    <script src="{{ url_for('static', filename='home/jwplayer/jwplayer.js') }}"></script>
+    <script src="{{ url_for('static', filename='base/jwplayer/jwplayer.js') }}"></script>
     <script>
         var ue = UE.getEditor('input_content', {
             toolbars: [
@@ -286,7 +287,7 @@
     </script>
     <script type="text/javascript">
         jwplayer("moviecontainer").setup({
-            flashplayer: "{{ url_for('static', filename='home/jwplayer/jwplayer.flash.swf') }}",
+            flashplayer: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}",
             playlist: [{
                 file: "{{ url_for('static', filename='home/video/htpy.mp4') }}",
                 title: "环太平洋"
@@ -295,7 +296,7 @@
                 type: "html5"
             }, {
                 type: "flash",
-                src: "{{ url_for('static', filename='home/jwplayer/jwplayer.flash.swf') }}"
+                src: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}"
             }, {
                 type: "download"
             }],

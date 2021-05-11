@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}微电影后台管理系统{% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="shortcut icon" href="{{ url_for('static',filename='base/images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/admin/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/fonts/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/ionicons/css/ionicons.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/admin/dist/css/AdminLTE.min.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static',filename='admin/admin/dist/css/skins/_all-skins.min.css') }}">
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static',filename='admin/admin/plugins/datepicker/datepicker3.css') }}">
+    <style>
+        * {
+            font-family: "Microsoft YaHei";
+        }
+
+        .table > tbody > tr > td,
+        .table > tbody > tr > th,
+        .table > tfoot > tr > td,
+        .table > tfoot > tr > th,
+        .table > thead > tr > td,
+        .table > thead > tr > th {
+            vertical-align: middle;
+            text-align: center;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+    {% block content %}{% endblock %}
+    <footer class="main-footer">
+        <div class="pull-right hidden-xs">
+            <b>版本</b> 1.0
+        </div>
+        <strong>版权 &copy; 2021 归<a href="javascript:;">LGSP</a>.</strong> 所有
+    </footer>
+    <div class="control-sidebar-bg"></div>
+</div>
+<script src="{{ url_for('static',filename='admin/admin/plugins/jQuery/jQuery-2.2.0.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/bootstrap/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/plugins/slimScroll/jquery.slimscroll.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/plugins/fastclick/fastclick.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/dist/js/app.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/dist/js/demo.js') }}"></script>
+<script src="{{ url_for('static',filename='base/js/holder.min.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static',filename='admin/admin/plugins/datepicker/locales/bootstrap-datepicker.zh-CN.js') }}"
+        charset="UTF-8"></script>
+{% block js %}{% endblock %}
+</body>
+
+</html>
