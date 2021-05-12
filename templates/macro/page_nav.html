@@ -1,0 +1,65 @@
+{% macro page_nav(page_data, obj_url) %}
+    {% if page_data %}
+        {#    {% set search_name = request.args.get('search_name', '') %}#}
+        <nav aria-label="Page navigation" class="pull-right">
+            <ul class="pagination pagination-sm no-margin pull-right">
+                <li>
+                    <a href="{{ url_for(obj_url, page=1) }}">首页</a>
+                </li>
+                {% if page_data.has_prev %}
+                    <li>
+                        {# &search_name={{ search_name }} #}
+                        <a href="{{ url_for(obj_url, page=page_data.prev_num) }}" aria-label="Previous">
+                            <span aria-hidden="true">上一页</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="disabled">
+                        <a href="javascript:;"
+                           aria-label="Previous">
+                            <span aria-hidden="true">上一页</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for page_num in page_data.iter_pages() %}
+                    {% set page_num = page_num|d('...', True) %}
+                    {% if page_num == '...' %}
+                        <li><a href="javascript:;">{{ page_num }}</a></li>
+                    {% else %}
+                        {% if page_num == page_data.page %}
+                            <li class="active">
+                                {#                    &search_name={{ search_name }}#}
+                                <a href="javascript:;">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="{{ url_for(obj_url, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_data.has_next %}
+                    <li>
+                        {#                &search_name={{ search_name }}#}
+                        <a href="{{ url_for(obj_url, page=page_data.next_num) }}"
+                           aria-label="Next">
+                            <span aria-hidden="true">下一页</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="disabled">
+                        <a href="javascript:;"
+                           aria-label="Next">
+                            <span aria-hidden="true">下一页</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="{{ url_for(obj_url, page=page_data.pages) }}">尾页</a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+{% endmacro %}
