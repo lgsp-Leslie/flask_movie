@@ -1,24 +1,17 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+import os
 
-from admin.forms import LoginForm, TagForm
-from functools import wraps
+from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from werkzeug.utils import secure_filename
+
+from admin.forms import LoginForm, TagForm, MovieForm
 
 from conf import Config
-from models import db, Tag
+from models import db, Tag, Movie
+from templates.utils.filters import admin_login_req, change_filename
 
 admin = Blueprint('admin', __name__,
                   template_folder='templates',
                   static_folder='../static/admin')
-
-
-def admin_login_req(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        if 'admin' not in session:
-            return redirect(url_for('admin.login', next=request.url))
-        return func(*args, **kwargs)
-
-    return decorated_function
 
 
 @admin.route('/')
@@ -127,7 +120,51 @@ def tag_del(tag_id):
 @admin.route('/movie_add/', methods=['GET', 'POST'])
 @admin_login_req
 def movie_add():
-    return render_template('admin_movie_add.html')
+    form = MovieForm()
+    form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
+    print(3)
+    if form.validate_on_submit():
+        print(2)
+        data = form.data
+
+        # 重置为安全的文件名
+        file_url = secure_filename(form.url.data.filename)
+        file_logo = secure_filename(form.logo.data.filename)
+
+        # 如果不存在目录，则创建并授权
+        if not os.path.exists(Config.UPLOADS_DIR):
+            os.makedirs(Config.UPLOADS_DIR)
+            os.chmod(Config.UPLOADS_DIR, 6)
+
+        # 格式化名字并保存文件
+        url = change_filename(file_url)
+        logo = change_filename(file_logo)
+        form.url.data.save(Config.UPLOADS_DIR + url)
+        form.logo.data.save(Config.UPLOADS_DIR + logo)
+
+        movie = Movie(
+            name=data['name'],
+            url=url,
+            info=data['info'],
+            logo=logo,
+            star=int(data['star']),
+            play_count=0,
+            comment_count=0,
+            tag_id=int(data['tag_id']),
+            area=data['area'],
+            release_date=data['release_date'],
+            movie_length=data['movie_length']
+        )
+        try:
+            db.session.add(movie)
+            db.session.commit()
+            flash('添加电影成功', 'success')
+            return redirect(url_for('admin.movie_list', page=1))
+        except Exception as e:
+            flash('添加电影失败', 'error')
+            print(e)
+            print(form.errors)
+    return render_template('admin_movie_add.html', form=form)
 
 
 # 电影列表

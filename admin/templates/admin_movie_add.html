@@ -1,4 +1,5 @@
 {% extends 'admin_base.html' %}
+{% from 'macro/form_errors.html' import form_field_errors %}
 {% block css %}
     <link rel="stylesheet" type="text/css"
           href="{{ url_for('static', filename='base/jwplayer/skins/stormtrooper.css') }}">
@@ -7,6 +8,7 @@
     {% include 'components/admin_nav.html' %}
     {% include 'components/admin_aside_menu.html' %}
     <div class="content-wrapper">
+        {% include 'components/flash_messages.html' %}
         <!--内容-->
         <section class="content-header">
             <h1>微电影管理系统</h1>
@@ -22,65 +24,62 @@
                         <div class="box-header with-border">
                             <h3 class="box-title">添加电影</h3>
                         </div>
-                        <form role="form">
+                        <form role="form" action="" method="post" enctype="multipart/form-data">
+                            {{ form.csrf_token }}
                             <div class="box-body">
                                 <div class="form-group">
-                                    <label for="input_title">片名</label>
-                                    <input type="text" class="form-control" id="input_title" placeholder="请输入片名！">
+                                    {{ form.name.label }}
+                                    {{ form.name }}
+                                    {{ form_field_errors(form.name.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_url">文件</label>
-                                    <input type="file" id="input_url">
+                                    {{ form.url.label }}
+                                    {{ form.url }}
+                                    {{ form_field_errors(form.url.errors) }}
                                     <div style="margin-top:5px;">
                                         <div id="moviecontainer"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_info">介绍</label>
-                                    <textarea class="form-control" rows="10" id="input_info"></textarea>
+                                    {{ form.info.label }}
+                                    {{ form.info }}
+                                    {{ form_field_errors(form.info.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_logo">封面</label>
-                                    <input type="file" id="input_logo">
+                                    {{ form.logo.label }}
+                                    {{ form.logo }}
+                                    {{ form_field_errors(form.logo.errors) }}
                                     <img data-src="holder.js/262x166" style="margin-top:5px;" class="img-responsive"
                                          alt="">
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_star">星级</label>
-                                    <select class="form-control" id="input_star">
-                                        <option value="1">1星</option>
-                                        <option value="2">2星</option>
-                                        <option value="3">3星</option>
-                                        <option value="4">4星</option>
-                                        <option value="5">5星</option>
-                                    </select>
+                                    <label for="input_star">{{ form.star.label }}</label>
+                                    {{ form.star }}
+                                    {{ form_field_errors(form.star.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_tag_id">标签</label>
-                                    <select class="form-control" id="input_tag_id">
-                                        <option value="1">科幻</option>
-                                        <option value="2">冒险</option>
-                                        <option value="3">爱情</option>
-                                        <option value="4">动作</option>
-                                        <option value="5">战争</option>
-                                    </select>
+                                    {{ form.tag_id.label }}
+                                    {{ form.tag_id }}
+                                    {{ form_field_errors(form.tag_id.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_area">地区</label>
-                                    <input type="text" class="form-control" id="input_area" placeholder="请输入地区！">
+                                    {{ form.area.label }}
+                                    {{ form.area }}
+                                    {{ form_field_errors(form.area.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_length">片长</label>
-                                    <input type="text" class="form-control" id="input_length" placeholder="请输入片长！">
+                                    {{ form.movie_length.label }}
+                                    {{ form.movie_length }}
+                                    {{ form_field_errors(form.movie_length.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_release_time">上映时间</label>
-                                    <input type="text" class="form-control" id="input_release_time"
-                                           placeholder="请选择上映时间！">
+                                    {{ form.release_date.label }}
+                                    {{ form.release_date }}
+                                    {{ form_field_errors(form.release_date.errors) }}
                                 </div>
                             </div>
                             <div class="box-footer">
-                                <button type="submit" class="btn btn-primary">添加</button>
+                                {{ form.submit }}
                             </div>
                         </form>
                     </div>
