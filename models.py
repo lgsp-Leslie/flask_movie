@@ -12,17 +12,17 @@ class User(db.Model):
     """ 会员用户 """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='用户id')
-    username = db.Column(db.String(64), unique=True, nullable=False, comment='用户账号')
+    username = db.Column(db.String(64), nullable=False, comment='用户账号')
     password = db.Column(db.String(256), nullable=False, comment='密码')
     nickname = db.Column(db.String(64), comment='昵称')
-    email = db.Column(db.String(128), unique=True, comment='邮箱')
-    phone = db.Column(db.String(16), unique=True, comment='手机号')
+    email = db.Column(db.String(128), comment='邮箱')
+    phone = db.Column(db.String(16), comment='手机号')
     info = db.Column(db.Text, comment='用户简介')
     status = db.Column(db.Enum(constants.UserStatus), default=constants.UserStatus.USER_ACTIVE.value, comment='用户状态')
-    avatar = db.Column(db.String(256), unique=True, comment='头像')
+    avatar = db.Column(db.String(256), comment='头像')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now(), comment='最后登录时间')
-    uuid = db.Column(db.String(256), unique=True, comment='唯一标识符')
+    uuid = db.Column(db.String(256), comment='唯一标识符')
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -49,7 +49,7 @@ class Tag(db.Model):
     """ 标签 """
     __tablename__ = 'movie_tag'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='标签id')
-    name = db.Column(db.String(128), nullable=False, unique=True, comment='标签名')
+    name = db.Column(db.String(128), nullable=False, comment='标签名')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
 
     def __repr__(self):
@@ -60,10 +60,10 @@ class Movie(db.Model):
     """ 电影 """
     __tablename__ = 'movie'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='电影id')
-    name = db.Column(db.String(255), nullable=False, unique=True, comment='电影名称')
-    url = db.Column(db.String(255), unique=True, comment='电影链接')
+    name = db.Column(db.String(255), nullable=False, comment='电影名称')
+    url = db.Column(db.String(255), comment='电影链接')
     info = db.Column(db.Text, comment='电影简介')
-    logo = db.Column(db.String(255), unique=True, comment='电影封面')
+    logo = db.Column(db.String(255), comment='电影封面')
     area = db.Column(db.String(255), comment='上映地区')
     release_date = db.Column(db.Date, comment='上映日期')
     movie_length = db.Column(db.String(128), comment='电影时长')
@@ -83,9 +83,9 @@ class Preview(db.Model):
     """ 电影上映预告 """
     __tablename__ = 'movie_preview'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='电影上映预告id')
-    name = db.Column(db.String(255), nullable=False, unique=True, comment='电影上映预告名称')
+    name = db.Column(db.String(255), nullable=False, comment='电影上映预告名称')
     info = db.Column(db.Text, comment='电影上映预告简介')
-    logo = db.Column(db.String(255), unique=True, comment='电影上映预告封面')
+    logo = db.Column(db.String(255), comment='电影上映预告封面')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='添加时间')
 
     def __repr__(self):
@@ -129,8 +129,8 @@ class Auth(db.Model):
     """ 权限 """
     __tablename__ = 'auth'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='权限id')
-    name = db.Column(db.String(64), unique=True, nullable=False, comment='权限名称')
-    url = db.Column(db.String(256), unique=True, nullable=False, comment='权限路径')
+    name = db.Column(db.String(64), nullable=False, comment='权限名称')
+    url = db.Column(db.String(256), nullable=False, comment='权限路径')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
 
     def __repr__(self):
@@ -141,7 +141,7 @@ class Role(db.Model):
     """ 角色 """
     __tablename__ = 'role'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='角色id')
-    name = db.Column(db.String(64), unique=True, nullable=False, comment='角色名称')
+    name = db.Column(db.String(64), nullable=False, comment='角色名称')
     auths = db.Column(db.String(1024), comment='角色权限列表')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
 
@@ -153,7 +153,7 @@ class Admin(db.Model):
     """ 管理员用户 """
     __tablename__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='管理员id')
-    username = db.Column(db.String(64), unique=True, nullable=False, comment='管理员账号')
+    username = db.Column(db.String(64), nullable=False, comment='管理员账号')
     password = db.Column(db.String(256), nullable=False, comment='密码')
     is_super = db.Column(db.SmallInteger, comment='是否为超级管理员,0代表超级管理员')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')

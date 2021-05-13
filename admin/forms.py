@@ -78,14 +78,14 @@ class MovieForm(FlaskForm):
         'class': 'form-control',
         'placeholder': '请输入片名！'
     })
-    url = FileField(label='文件', validators=[validators.DataRequired('电影文件不能为空'), FileAllowed(constants.UPLOAD_MOVIE_TYPE, '请选择合适的视频类型，仅支持{}'.format(constants.UPLOAD_MOVIE_TYPE))], render_kw={
+    url = FileField(label='文件', validators=[FileAllowed(constants.UPLOAD_MOVIE_TYPE, '请选择合适的视频类型，仅支持{}'.format(constants.UPLOAD_MOVIE_TYPE))], render_kw={
         'accept': '.mp4, .avi'
     })
     info = TextAreaField(label='简介', validators=[validators.DataRequired('简介不能为空')], render_kw={
         'class': 'form-control',
         'placeholder': '请输入简介！',
     })
-    logo = FileField(label='封面', validators=[validators.DataRequired('封面文件不能为空'), FileAllowed(constants.UPLOAD_IMAGE_TYPE, '请选择合适的图片类型，仅支持{}'.format(constants.UPLOAD_IMAGE_TYPE))], render_kw={
+    logo = FileField(label='封面', validators=[FileAllowed(constants.UPLOAD_IMAGE_TYPE, '请选择合适的图片类型，仅支持{}'.format(constants.UPLOAD_IMAGE_TYPE))], render_kw={
         'accept': '.jpeg, .jpg, .png'
     })
     star = SelectField(label='星级', validators=[validators.DataRequired('请选择星级')], render_kw={
@@ -110,9 +110,3 @@ class MovieForm(FlaskForm):
     submit = SubmitField(label='保存', render_kw={
         'class': 'btn btn-primary',
     })
-
-    def validate_name(self, field):
-        name = field.data
-        if Movie.query.filter_by(name=name).count() == 1:
-            flash('电影名已存在！', 'danger')
-            raise ValidationError('电影名已存在')

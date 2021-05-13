@@ -1,0 +1,141 @@
+{% extends 'admin_base.html' %}
+{% from 'macro/form_errors.html' import form_field_errors %}
+{% block css %}
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='base/jwplayer/skins/stormtrooper.css') }}">
+{% endblock %}
+{% block content %}
+    {% include 'components/admin_nav.html' %}
+    {% include 'components/admin_aside_menu.html' %}
+    <div class="content-wrapper">
+        {% include 'components/flash_messages.html' %}
+        <!--内容-->
+        <section class="content-header">
+            <h1>微电影管理系统</h1>
+            <ol class="breadcrumb">
+                <li><a href="#"><i class="fa fa-dashboard"></i> 电影管理</a></li>
+                <li class="active">修改电影</li>
+            </ol>
+        </section>
+        <section class="content" id="showcontent">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">修改电影</h3>
+                        </div>
+                        <form role="form" action="" method="post" enctype="multipart/form-data">
+                            {{ form.csrf_token }}
+                            <div class="box-body">
+                                <div class="form-group">
+                                    {{ form.name.label }}
+                                    {{ form.name(value=movie_obj.name) }}
+                                    {{ form_field_errors(form.name.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.url.label }}
+                                    {{ form.url }}
+                                    {{ form_field_errors(form.url.errors) }}
+                                    <div style="margin-top:5px;">
+                                        <div id="moviecontainer"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    {{ form.info.label }}
+                                    {{ form.info }}
+                                    {{ form_field_errors(form.info.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.logo.label }}
+                                    {{ form.logo }}
+                                    {{ form_field_errors(form.logo.errors) }}
+                                    <img src="{{ url_for('static', filename='uploads/' + movie_obj.logo) }}" style="margin-top:5px;" class="img-responsive"
+                                         alt="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="input_star">{{ form.star.label }}</label>
+                                    {{ form.star }}
+                                    {{ form_field_errors(form.star.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.tag_id.label }}
+                                    {{ form.tag_id }}
+                                    {{ form_field_errors(form.tag_id.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.area.label }}
+                                    {{ form.area(value=movie_obj.area) }}
+                                    {{ form_field_errors(form.area.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.movie_length.label }}
+                                    {{ form.movie_length(value=movie_obj.movie_length) }}
+                                    {{ form_field_errors(form.movie_length.errors) }}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.release_date.label }}
+                                    {{ form.release_date(value=movie_obj.release_date) }}
+                                    {{ form_field_errors(form.release_date.errors) }}
+                                </div>
+                            </div>
+                            <div class="box-footer">
+                                {{ form.submit }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!--内容-->
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $(() => {
+            $('#g-3').addClass('active');
+            $('#g-3-1').addClass('active');
+        })
+    </script>
+
+    <!--播放页面-->
+    <script src="{{ url_for('static', filename='base/jwplayer/jwplayer.js') }}"></script>
+    <script type="text/javascript">
+        jwplayer.key = "P9VTqT/X6TSP4gi/hy1wy23BivBhjdzVjMeOaQ==";
+
+    </script>
+    <script type="text/javascript">
+        jwplayer("moviecontainer").setup({
+            flashplayer: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}",
+            playlist: [{
+                file: "{{ url_for('static', filename='uploads/' + movie_obj.url) }}",
+                title: "{{ movie_obj.name }}"
+            }],
+            modes: [{
+                type: "html5"
+            }, {
+                type: "flash",
+                src: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}"
+            }, {
+                type: "download"
+            }],
+            skin: {
+                name: "vapor"
+            },
+            "playlist.position": "left",
+            "playlist.size": 200,
+            height: 250,
+            width: 387,
+        });
+
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#input_release_time').datepicker({
+                autoclose: true,
+                format: 'yyyy-mm-dd',
+                language: 'zh-CN',
+            });
+        });
+
+    </script>
+{% endblock %}

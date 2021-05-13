@@ -80,7 +80,7 @@ def tag_edit(tag_id):
         tag_count = Tag.query.filter_by(name=name).count()
         if tag_obj.name != name and tag_count == 1:
             flash('标签已存在', 'warning')
-            return redirect(url_for('admin.tag_edit'))
+            return redirect(url_for('admin.tag_edit', tag_id=tag_id))
         try:
             tag_obj.name = name
             db.session.add(tag_obj)
@@ -122,11 +122,8 @@ def tag_del(tag_id):
 def movie_add():
     form = MovieForm()
     form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
-    print(3)
     if form.validate_on_submit():
-        print(2)
         data = form.data
-
         # 重置为安全的文件名
         file_url = secure_filename(form.url.data.filename)
         file_logo = secure_filename(form.logo.data.filename)
@@ -167,11 +164,79 @@ def movie_add():
     return render_template('admin_movie_add.html', form=form)
 
 
-# 电影列表
-@admin.route('/movie_list/', methods=['GET'])
+# 编辑电影
+@admin.route('/movie_edit/<int:movie_id>', methods=['GET', 'POST'])
 @admin_login_req
-def movie_list():
-    return render_template('admin_movie_list.html')
+def movie_edit(movie_id):
+    form = MovieForm()
+    form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
+
+    form.url.validators = []
+    form.logo.validators = []
+    movie_obj = Movie.query.get(movie_id)
+
+    if request.method == 'GET':
+        form.info.data = movie_obj.info
+        form.tag_id.data = movie_obj.tag_id
+        form.star.data = movie_obj.star
+    if form.validate_on_submit():
+        data = form.data
+        try:
+            # 如果不存在目录，则创建并授权
+            if not os.path.exists(Config.UPLOADS_DIR):
+                os.makedirs(Config.UPLOADS_DIR)
+                os.chmod(Config.UPLOADS_DIR, 6)
+
+            if form.url.data.filename != '':
+                file_url = secure_filename(form.url.data.filename)
+                url = change_filename(file_url)
+                form.url.data.save(Config.UPLOADS_DIR + url)
+                movie_obj.url = url
+
+            if form.logo.data.filename != '':
+                file_logo = secure_filename(form.logo.data.filename)
+                logo = change_filename(file_logo)
+                form.logo.data.save(Config.UPLOADS_DIR + logo)
+                movie_obj.logo = logo
+
+            movie_obj.name = data['name']
+            movie_obj.info = data['info']
+            movie_obj.area = data['area']
+            movie_obj.release_date = data['release_date']
+            movie_obj.movie_length = data['movie_length']
+            movie_obj.star = int(data['star']),
+            movie_obj.tag_id = int(data['tag_id'])
+            db.session.add(movie_obj)
+            db.session.commit()
+            flash('电影修改成功', 'success')
+            return redirect(url_for('admin.movie_list', page=1))
+        except Exception as e:
+            flash('服务器忙，请联系管理员或稍后重试！', 'danger')
+            return redirect(url_for('admin.movie_list', page=1))
+    return render_template('admin_movie_edit.html', form=form, movie_obj=movie_obj)
+
+
+# 电影列表
+@admin.route('/movie_list/<int:page>/', methods=['GET'])
+@admin_login_req
+def movie_list(page=1):
+    page_data = Movie.query.order_by(Movie.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_movie_list.html', page_data=page_data)
+
+
+# 删除电影
+@admin.route('/movie_del/<int:movie_id>/', methods=['GET'])
+@admin_login_req
+def movie_del(movie_id):
+    movie_obj = Movie.query.filter_by(id=movie_id).first()
+    if not movie_obj:
+        flash('查询不到电影，请刷新后重试！', 'warning')
+        return redirect(url_for('admin.movie_list', page=1))
+    else:
+        db.session.delete(movie_obj)
+        db.session.commit()
+        flash('电影：{}，删除成功！'.format(movie_obj.name), 'success')
+        return redirect(url_for('admin.movie_list', page=1))
 
 
 # 添加预告
