@@ -34,41 +34,55 @@
                                 <tbody>
                                 <tr>
                                     <td class="td_bd">编号：</td>
-                                    <td>1</td>
+                                    <td>{{ user_obj.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="td_bd">用户名：</td>
+                                    <td>{{ user_obj.username }}</td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">昵称：</td>
-                                    <td>拓荒者</td>
+                                    <td>{{ user_obj.nickname }}</td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">邮箱：</td>
-                                    <td>1780316635@qq.com</td>
+                                    <td>{{ user_obj.email }}</td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">手机：</td>
-                                    <td>13700632835</td>
+                                    <td>{{ user_obj.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="td_bd">用户状态：</td>
+                                    <td>{{ user_obj.status.value }}</td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">头像：</td>
                                     <td>
-                                        <img data-src="holder.js/100x100" class="img-responsive" alt="">
+                                        <img style="height: 100px; width: auto;" src="{{ url_for('static', filename='uploads/user/avatar/' + user_obj.avatar) }}" class="img-responsive" alt="">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">注册时间：</td>
                                     <td>
-                                        2017-01-01 12:00:00
+                                        {{ user_obj.created_at }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="td_bd">最后登录时间：</td>
+                                    <td>
+                                        {{ user_obj.updated_at }}
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">唯一标志符：</td>
                                     <td>
-                                        xxxxxx
+                                        {{ user_obj.uuid }}
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="td_bd">个性简介：</td>
-                                    <td>xxxxxxxxxxxxxxxxxxxxxxxxxx,xxxxxxxxxxxxxxxxxxxxxxxxxxxx</td>
+                                    <td>{{ user_obj.info }}</td>
                                 </tr>
                                 </tbody>
                             </table>

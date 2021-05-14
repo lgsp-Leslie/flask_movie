@@ -3,10 +3,11 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from werkzeug.utils import secure_filename
 
+import constants
 from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview
+from models import db, Tag, Movie, Preview, User
 from templates.utils.filters import admin_login_req, change_filename
 
 admin = Blueprint('admin', __name__,
@@ -330,17 +331,79 @@ def preview_edit(prev_id):
 
 
 # 用户详情
-@admin.route('/user_view/', methods=['GET'])
+@admin.route('/user_view/<int:user_id>', methods=['GET'])
 @admin_login_req
-def user_view():
-    return render_template('admin_user_view.html')
+def user_view(user_id):
+    user_obj = User.query.filter_by(id=user_id).first()
+    if user_obj is None:
+        flash('用户不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
+    return render_template('admin_user_view.html', user_obj=user_obj)
 
 
 # 用户列表
-@admin.route('/user_list/', methods=['GET'])
+@admin.route('/user_list/<int:page>', methods=['GET'])
 @admin_login_req
-def user_list():
-    return render_template('admin_user_list.html')
+def user_list(page=1):
+    page_data = User.query.order_by(User.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_user_list.html', page_data=page_data)
+
+
+# 删除用户
+@admin.route('/user_del/<int:user_id>', methods=['GET'])
+@admin_login_req
+def user_del(user_id):
+    user_obj = User.query.filter_by(id=user_id).first()
+    if user_obj is None:
+        flash('用户不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
+    try:
+        db.session.delete(user_obj)
+        db.session.commit()
+        flash('用户删除成功', 'success')
+        return redirect(url_for('admin.user_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，稍后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
+
+
+# 禁用用户
+@admin.route('/user_disable/<int:user_id>', methods=['GET'])
+@admin_login_req
+def user_disable(user_id):
+    user_obj = User.query.filter_by(id=user_id).first()
+    if user_obj is None:
+        flash('用户不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
+    try:
+        user_obj.status = constants.UserStatus.USER_IN_ACTIVE
+        db.session.add(user_obj)
+        db.session.commit()
+        flash('用户成功禁用', 'success')
+        return redirect(url_for('admin.user_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，稍后重试', 'danger')
+        print(e)
+        return redirect(url_for('admin.user_list', page=1))
+
+
+# 启用用户
+@admin.route('/user_enable/<int:user_id>', methods=['GET'])
+@admin_login_req
+def user_enable(user_id):
+    user_obj = User.query.filter_by(id=user_id).first()
+    if user_obj is None:
+        flash('用户不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
+    try:
+        user_obj.status = constants.UserStatus.USER_ACTIVE
+        db.session.add(user_obj)
+        db.session.commit()
+        flash('用户成功启用', 'success')
+        return redirect(url_for('admin.user_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，稍后重试', 'danger')
+        return redirect(url_for('admin.user_list', page=1))
 
 
 # 评论列表
