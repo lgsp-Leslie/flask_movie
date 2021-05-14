@@ -110,3 +110,20 @@ class MovieForm(FlaskForm):
     submit = SubmitField(label='保存', render_kw={
         'class': 'btn btn-primary',
     })
+
+
+class PreviewForm(FlaskForm):
+    name = StringField(label='预告标题', validators=[validators.DataRequired('预告标题不能为空！')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入预告标题！'
+    })
+    info = TextAreaField(label='预告简介', render_kw={
+        'class': 'form-control',
+        'placeholder': '电影简介！',
+    })
+    logo = FileField(label='预告封面', validators=[FileAllowed(constants.UPLOAD_IMAGE_TYPE, '请选择合适的图片类型，仅支持{}'.format(constants.UPLOAD_IMAGE_TYPE))], render_kw={
+        'accept': '.jpeg, .jpg, .png'
+    })
+    submit = SubmitField(label='保存', render_kw={
+        'class': 'btn btn-primary',
+    })

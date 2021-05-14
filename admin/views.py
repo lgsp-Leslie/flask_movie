@@ -3,10 +3,10 @@ import os
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from werkzeug.utils import secure_filename
 
-from admin.forms import LoginForm, TagForm, MovieForm
+from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm
 
 from conf import Config
-from models import db, Tag, Movie
+from models import db, Tag, Movie, Preview
 from templates.utils.filters import admin_login_req, change_filename
 
 admin = Blueprint('admin', __name__,
@@ -171,8 +171,8 @@ def movie_edit(movie_id):
     form = MovieForm()
     form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
 
-    form.url.validators = []
-    form.logo.validators = []
+    # form.url.validators = []
+    # form.logo.validators = []
     movie_obj = Movie.query.get(movie_id)
 
     if request.method == 'GET':
@@ -243,14 +243,90 @@ def movie_del(movie_id):
 @admin.route('/preview_add/', methods=['GET', 'POST'])
 @admin_login_req
 def preview_add():
-    return render_template('admin_preview_add.html')
+    form = PreviewForm()
+    if form.validate_on_submit():
+        data = form.data
+
+        file_logo = secure_filename(data['logo'].filename)
+        if not os.path.exists(Config.UPLOADS_DIR):
+            os.makedirs(Config.UPLOADS_DIR)
+            os.chmod(Config.UPLOADS_DIR, 6)
+        logo = change_filename(file_logo)
+        form.logo.data.save(Config.UPLOADS_DIR + logo)
+
+        preview_obj = Preview(name=data['name'], info=data['info'], logo=logo)
+        try:
+            db.session.add(preview_obj)
+            db.session.commit()
+            flash('电影预告添加成功', 'success')
+            return redirect(url_for('admin.preview_list', page=1))
+        except Exception as e:
+            flash('服务器忙，请联系管理员或稍后再试！', 'danger')
+    return render_template('admin_preview_add.html', form=form)
 
 
 # 预告列表
-@admin.route('/preview_list/', methods=['GET'])
+@admin.route('/preview_list/<int:page>', methods=['GET'])
 @admin_login_req
-def preview_list():
-    return render_template('admin_preview_list.html')
+def preview_list(page=1):
+    page_data = Preview.query.order_by(Preview.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_preview_list.html', page_data=page_data)
+
+
+# 删除预告
+@admin.route('/preview_del/<int:prev_id>', methods=['GET'])
+@admin_login_req
+def preview_del(prev_id):
+    try:
+        preview_obj = Preview.query.filter_by(id=prev_id).first()
+        if preview_obj is None:
+            flash('预告不存在，请刷新后重试', 'warning')
+            return redirect(url_for('admin.preview_list', page=1))
+        else:
+            db.session.delete(preview_obj)
+            db.session.commit()
+            flash('预告删除成功', 'success')
+            return redirect(url_for('admin.preview_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，请稍后重试！', 'danger')
+        return redirect(url_for('admin.preview_del', prev_id=prev_id))
+
+
+# 编辑预告
+@admin.route('/preview_edit/<int:prev_id>', methods=['GET', 'POST'])
+@admin_login_req
+def preview_edit(prev_id):
+    form = PreviewForm()
+    preview_obj = Preview.query.filter_by(id=prev_id).first()
+    if preview_obj is None:
+        flash('预告不存在，请刷新后重试', 'warning')
+        return redirect(url_for('admin.preview_list', page=1))
+
+    form.info.data = preview_obj.info
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            try:
+                if not os.path.exists(Config.UPLOADS_DIR):
+                    os.makedirs(Config.UPLOADS_DIR)
+                    os.chmod(Config.UPLOADS_DIR, 6)
+                if form.logo.data.filename != '':
+                    file_logo = secure_filename(form.logo.data.filename)
+                    logo = change_filename(file_logo)
+                    form.logo.data.save(Config.UPLOADS_DIR + logo)
+                    preview_obj.logo = logo
+
+                preview_obj.name = form.name.data
+                preview_obj.info = form.info.data
+
+                db.session.add(preview_obj)
+                db.session.commit()
+                flash('预告编辑成功', 'success')
+                return redirect(url_for('admin.preview_list', page=1))
+            except Exception as e:
+                flash('服务器正忙，请稍后重试！', 'danger')
+                return redirect(url_for('admin.preview_list', page=1))
+    return render_template('admin_preview_edit.html', form=form, preview_obj=preview_obj)
 
 
 # 用户详情
