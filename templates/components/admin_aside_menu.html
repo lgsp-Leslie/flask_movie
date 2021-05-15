@@ -6,7 +6,7 @@
                      alt="User Image">
             </div>
             <div class="pull-left info">
-                <p>用户xxx</p>
+                <p>用户：{{ session['admin'] }}</p>
                 <a href="#"><i class="fa fa-circle text-success"></i> 在线</a>
             </div>
         </div>
@@ -141,17 +141,17 @@
                 </a>
                 <ul class="treeview-menu">
                     <li id="g-8-1">
-                        <a href="{{ url_for('admin.admin_operate_log_list') }}">
+                        <a href="{{ url_for('admin.admin_operate_log_list', page=1) }}">
                             <i class="fa fa-circle-o"></i> 操作日志列表
                         </a>
                     </li>
                     <li id="g-8-2">
-                        <a href="{{ url_for('admin.admin_login_log_list') }}">
+                        <a href="{{ url_for('admin.admin_login_log_list', page=1) }}">
                             <i class="fa fa-circle-o"></i> 管理员登录日志列表
                         </a>
                     </li>
                     <li id="g-8-3">
-                        <a href="{{ url_for('admin.user_login_log_list') }}">
+                        <a href="{{ url_for('admin.user_login_log_list', page=1) }}">
                             <i class="fa fa-circle-o"></i> 会员登录日志列表
                         </a>
                     </li>

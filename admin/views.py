@@ -1,18 +1,32 @@
 import os
+from datetime import datetime
 
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
+
 import constants
-from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm
+from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview, User, Comment, MovieCollect
-from templates.utils.filters import admin_login_req, change_filename
+from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin
+from templates.utils.filters import change_filename
+from templates.utils.decorator import admin_login_req
+
 
 admin = Blueprint('admin', __name__,
                   template_folder='templates',
                   static_folder='../static/admin')
+
+
+# 上下文处理器
+@admin.context_processor
+def tpl_extra():
+    data = dict(
+        online_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    )
+    return data
 
 
 @admin.route('/')
@@ -27,11 +41,12 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         data = form.data
-        # admin = Admin.query.filter_by(username=data['username']).first()
+        admin_obj = Admin.query.filter_by(username=data['username']).first()
         # if not admin.check_password(data['password']):
         #     flash('密码错误', 'danger')
         #     return redirect(url_for('admin.login'))
         session['admin'] = data['username']
+        session['admin_id'] = admin_obj.id
         return redirect(request.args.get('next') or url_for('admin.index'))
     return render_template('admin_login.html', form=form)
 
@@ -41,6 +56,7 @@ def login():
 @admin_login_req
 def logout():
     session.pop('admin', None)
+    session.pop('admin_id', None)
     return redirect(url_for('admin.login'))
 
 
@@ -48,7 +64,22 @@ def logout():
 @admin.route('/edit_password/', methods=['GET', 'POST'])
 @admin_login_req
 def edit_password():
-    return render_template('admin_edit_password.html')
+    form = ModifyPasswordForm()
+    if form.validate_on_submit():
+        try:
+            admin_obj = Admin.query.filter_by(username=session['admin']).first()
+            if admin_obj is None:
+                flash('登录失效，请重新登录！', 'danger')
+                return redirect(url_for('admin.login'))
+            admin_obj.password = generate_password_hash(form.pwd.data)
+            db.session.add(admin_obj)
+            db.session.commit()
+            flash('密码修改成功,请重新登录', 'success')
+            return redirect(url_for('admin.logout'))
+        except Exception as e:
+            flash('服务器忙，请联系管理员或稍后重试！', 'danger')
+            return redirect(url_for('admin.index'))
+    return render_template('admin_edit_password.html', form=form)
 
 
 # 添加标签
@@ -63,7 +94,7 @@ def tag_add():
             db.session.add(tag)
             db.session.commit()
             flash('添加成功', 'success')
-            return redirect(url_for('admin.tag_add'))
+            return redirect(url_for('admin.tag_list', page=1))
         except Exception as e:
             flash('服务器忙，请联系管理员或稍后重试！', 'danger')
             return redirect(url_for('admin.tag_add'))
@@ -71,7 +102,7 @@ def tag_add():
 
 
 # 编辑标签
-@admin.route('/tag_edit/<int:tag_id>', methods=['GET', 'POST'])
+@admin.route('/tag_edit/<int:tag_id>/', methods=['GET', 'POST'])
 @admin_login_req
 def tag_edit(tag_id):
     form = TagForm()
@@ -166,7 +197,7 @@ def movie_add():
 
 
 # 编辑电影
-@admin.route('/movie_edit/<int:movie_id>', methods=['GET', 'POST'])
+@admin.route('/movie_edit/<int:movie_id>/', methods=['GET', 'POST'])
 @admin_login_req
 def movie_edit(movie_id):
     form = MovieForm()
@@ -267,7 +298,7 @@ def preview_add():
 
 
 # 预告列表
-@admin.route('/preview_list/<int:page>', methods=['GET'])
+@admin.route('/preview_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def preview_list(page=1):
     page_data = Preview.query.order_by(Preview.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
@@ -275,7 +306,7 @@ def preview_list(page=1):
 
 
 # 删除预告
-@admin.route('/preview_del/<int:prev_id>', methods=['GET'])
+@admin.route('/preview_del/<int:prev_id>/', methods=['GET'])
 @admin_login_req
 def preview_del(prev_id):
     try:
@@ -294,7 +325,7 @@ def preview_del(prev_id):
 
 
 # 编辑预告
-@admin.route('/preview_edit/<int:prev_id>', methods=['GET', 'POST'])
+@admin.route('/preview_edit/<int:prev_id>/', methods=['GET', 'POST'])
 @admin_login_req
 def preview_edit(prev_id):
     form = PreviewForm()
@@ -331,7 +362,7 @@ def preview_edit(prev_id):
 
 
 # 用户详情
-@admin.route('/user_view/<int:user_id>', methods=['GET'])
+@admin.route('/user_view/<int:user_id>/', methods=['GET'])
 @admin_login_req
 def user_view(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
@@ -342,7 +373,7 @@ def user_view(user_id):
 
 
 # 用户列表
-@admin.route('/user_list/<int:page>', methods=['GET'])
+@admin.route('/user_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def user_list(page=1):
     page_data = User.query.order_by(User.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
@@ -350,7 +381,7 @@ def user_list(page=1):
 
 
 # 删除用户
-@admin.route('/user_del/<int:user_id>', methods=['GET'])
+@admin.route('/user_del/<int:user_id>/', methods=['GET'])
 @admin_login_req
 def user_del(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
@@ -368,7 +399,7 @@ def user_del(user_id):
 
 
 # 禁用用户
-@admin.route('/user_disable/<int:user_id>', methods=['GET'])
+@admin.route('/user_disable/<int:user_id>/', methods=['GET'])
 @admin_login_req
 def user_disable(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
@@ -388,7 +419,7 @@ def user_disable(user_id):
 
 
 # 启用用户
-@admin.route('/user_enable/<int:user_id>', methods=['GET'])
+@admin.route('/user_enable/<int:user_id>/', methods=['GET'])
 @admin_login_req
 def user_enable(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
@@ -407,15 +438,15 @@ def user_enable(user_id):
 
 
 # 评论列表
-@admin.route('/comment_list/<int:page>', methods=['GET'])
+@admin.route('/comment_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def comment_list(page):
+def comment_list(page=1):
     page_data = Comment.query.order_by(Comment.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_comment_list.html', page_data=page_data)
 
 
 # 删除评论
-@admin.route('/comment_del/<int:comment_id>', methods=['GET'])
+@admin.route('/comment_del/<int:comment_id>/', methods=['GET'])
 @admin_login_req
 def comment_del(comment_id):
     comment_obj = Comment.query.filter_by(id=comment_id).first()
@@ -433,15 +464,15 @@ def comment_del(comment_id):
 
 
 # 电影收藏列表
-@admin.route('/movie_collect_list/<int:page>', methods=['GET'])
+@admin.route('/movie_collect_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def movie_collect_list(page):
+def movie_collect_list(page=1):
     page_data = MovieCollect.query.order_by(MovieCollect.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_movie_collect_list.html', page_data=page_data)
 
 
 # 删除收藏电影
-@admin.route('/movie_collect_del/<int:collect_id>', methods=['GET'])
+@admin.route('/movie_collect_del/<int:collect_id>/', methods=['GET'])
 @admin_login_req
 def movie_collect_del(collect_id):
     movie_collect_obj = MovieCollect.query.filter_by(id=collect_id).first()

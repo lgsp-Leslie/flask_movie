@@ -1,8 +1,10 @@
 {% extends 'admin_base.html' %}
+{% from 'macro/page_nav.html' import page_nav %}
 {% block content %}
     {% include 'components/admin_nav.html' %}
     {% include 'components/admin_aside_menu.html' %}
     <div class="content-wrapper">
+        {% include 'components/flash_messages.html' %}
         <!--内容-->
         <section class="content-header">
             <h1>微电影管理系统</h1>
@@ -38,29 +40,23 @@
                                     <th>操作时间</th>
                                     <th>操作原因</th>
                                     <th>操作IP</th>
+                                    <th>操作终端</th>
                                 </tr>
-                                {% for item in range(1, 6) %}
-                                <tr>
-                                    <td>1</td>
-                                    <td>admin</td>
-                                    <td>2017-06-01</td>
-                                    <td>添加一个标签：科幻</td>
-                                    <td>192.168.4.1</td>
-                                </tr>
+                                {% for item in page_data.items %}
+                                    <tr>
+                                        <td>{{ item.id }}</td>
+                                        <td>{{ item.username }}</td>
+                                        <td>{{ item.created_at }}</td>
+                                        <td>{{ item.reason }}</td>
+                                        <td>{{ item.ip }}</td>
+                                        <td>{{ item.ua }}</td>
+                                    </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                         <div class="box-footer clearfix">
-                            <ul class="pagination pagination-sm no-margin pull-right">
-                                <li><a href="#">首页</a></li>
-                                <li><a href="#">上一页</a></li>
-                                <li><a href="#">1</a></li>
-                                <li><a href="#">2</a></li>
-                                <li><a href="#">3</a></li>
-                                <li><a href="#">下一页</a></li>
-                                <li><a href="#">尾页</a></li>
-                            </ul>
+                            {{ page_nav(page_data, 'admin.admin_operate_log_list') }}
                         </div>
                     </div>
                 </div>
