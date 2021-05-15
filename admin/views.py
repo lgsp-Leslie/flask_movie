@@ -5,15 +5,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
-
 import constants
 from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin
+from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog
 from templates.utils.filters import change_filename
 from templates.utils.decorator import admin_login_req
-
+from templates.utils.utils import admin_operate_log, admin_login_log
 
 admin = Blueprint('admin', __name__,
                   template_folder='templates',
@@ -47,6 +46,11 @@ def login():
         #     return redirect(url_for('admin.login'))
         session['admin'] = data['username']
         session['admin_id'] = admin_obj.id
+
+        admin_login_log_obj = admin_login_log()
+        db.session.add(admin_login_log_obj)
+        db.session.commit()
+
         return redirect(request.args.get('next') or url_for('admin.index'))
     return render_template('admin_login.html', form=form)
 
@@ -73,6 +77,10 @@ def edit_password():
                 return redirect(url_for('admin.login'))
             admin_obj.password = generate_password_hash(form.pwd.data)
             db.session.add(admin_obj)
+            reason = '修改密码'
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('密码修改成功,请重新登录', 'success')
             return redirect(url_for('admin.logout'))
@@ -90,8 +98,13 @@ def tag_add():
     if form.validate_on_submit():
         name = form.name.data
         try:
-            tag = Tag(name=name)
-            db.session.add(tag)
+            tag_obj = Tag(name=name)
+            db.session.add(tag_obj)
+
+            reason = '添加标签：%s' % name
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('添加成功', 'success')
             return redirect(url_for('admin.tag_list', page=1))
@@ -116,6 +129,11 @@ def tag_edit(tag_id):
         try:
             tag_obj.name = name
             db.session.add(tag_obj)
+
+            reason = '修改标签为：%s' % name
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('标签修改成功', 'success')
             return redirect(url_for('admin.tag_list', page=1))
@@ -143,6 +161,11 @@ def tag_del(tag_id):
         return redirect(url_for('admin.tag_list', page=1))
     else:
         db.session.delete(tag_obj)
+
+        reason = '删除标签'
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('标签：{}，删除成功！'.format(tag_obj.name), 'success')
         return redirect(url_for('admin.tag_list', page=1))
@@ -186,6 +209,11 @@ def movie_add():
         )
         try:
             db.session.add(movie)
+
+            reason = '添加电影：%s' % data['name']
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('添加电影成功', 'success')
             return redirect(url_for('admin.movie_list', page=1))
@@ -239,6 +267,11 @@ def movie_edit(movie_id):
             movie_obj.star = int(data['star']),
             movie_obj.tag_id = int(data['tag_id'])
             db.session.add(movie_obj)
+
+            reason = '修改电影：%s' % data['name']
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('电影修改成功', 'success')
             return redirect(url_for('admin.movie_list', page=1))
@@ -265,7 +298,13 @@ def movie_del(movie_id):
         flash('查询不到电影，请刷新后重试！', 'warning')
         return redirect(url_for('admin.movie_list', page=1))
     else:
+        name = movie_obj.name
         db.session.delete(movie_obj)
+
+        reason = '删除电影：%s' % name
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('电影：{}，删除成功！'.format(movie_obj.name), 'success')
         return redirect(url_for('admin.movie_list', page=1))
@@ -289,6 +328,11 @@ def preview_add():
         preview_obj = Preview(name=data['name'], info=data['info'], logo=logo)
         try:
             db.session.add(preview_obj)
+
+            reason = '添加电影预告：%s' % data['name']
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('电影预告添加成功', 'success')
             return redirect(url_for('admin.preview_list', page=1))
@@ -315,7 +359,13 @@ def preview_del(prev_id):
             flash('预告不存在，请刷新后重试', 'warning')
             return redirect(url_for('admin.preview_list', page=1))
         else:
+            name = preview_obj.name
             db.session.delete(preview_obj)
+
+            reason = '删除电影预告：%s' % name
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
             db.session.commit()
             flash('预告删除成功', 'success')
             return redirect(url_for('admin.preview_list', page=1))
@@ -352,6 +402,11 @@ def preview_edit(prev_id):
                 preview_obj.info = form.info.data
 
                 db.session.add(preview_obj)
+
+                reason = '编辑电影预告：%s' % form.name.data
+                admin_operate_log_obj = admin_operate_log(reason)
+                db.session.add(admin_operate_log_obj)
+
                 db.session.commit()
                 flash('预告编辑成功', 'success')
                 return redirect(url_for('admin.preview_list', page=1))
@@ -389,7 +444,13 @@ def user_del(user_id):
         flash('用户不存在，请刷新后重试', 'danger')
         return redirect(url_for('admin.user_list', page=1))
     try:
+        username = user_obj.username
         db.session.delete(user_obj)
+
+        reason = '删除用户：%s' % username
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('用户删除成功', 'success')
         return redirect(url_for('admin.user_list', page=1))
@@ -409,6 +470,11 @@ def user_disable(user_id):
     try:
         user_obj.status = constants.UserStatus.USER_IN_ACTIVE
         db.session.add(user_obj)
+
+        reason = '禁用用户：%s' % user_obj.username
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('用户成功禁用', 'success')
         return redirect(url_for('admin.user_list', page=1))
@@ -429,6 +495,11 @@ def user_enable(user_id):
     try:
         user_obj.status = constants.UserStatus.USER_ACTIVE
         db.session.add(user_obj)
+
+        reason = '启用用户：%s' % user_obj.username
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('用户成功启用', 'success')
         return redirect(url_for('admin.user_list', page=1))
@@ -454,7 +525,13 @@ def comment_del(comment_id):
         flash('评论不存在，请刷新后重试', 'danger')
         return redirect(url_for('admin.comment_list', page=1))
     try:
+        content = comment_obj.content
         db.session.delete(comment_obj)
+
+        reason = '删除评论：%s' % content
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('评论删除成功', 'success')
         return redirect(url_for('admin.comment_list', page=1))
@@ -467,7 +544,8 @@ def comment_del(comment_id):
 @admin.route('/movie_collect_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def movie_collect_list(page=1):
-    page_data = MovieCollect.query.order_by(MovieCollect.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = MovieCollect.query.order_by(MovieCollect.created_at.desc()).paginate(page=page,
+                                                                                     per_page=Config.PER_PAGE)
     return render_template('admin_movie_collect_list.html', page_data=page_data)
 
 
@@ -480,7 +558,14 @@ def movie_collect_del(collect_id):
         flash('收藏电影不存在，请刷新后重试', 'danger')
         return redirect(url_for('admin.movie_collect_list', page=1))
     try:
+        username = movie_collect_obj.user.username
+        movie_name = movie_collect_obj.movie.name
         db.session.delete(movie_collect_obj)
+
+        reason = '删除%s用户收藏的%s电影' % (username, movie_name)
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
         db.session.commit()
         flash('收藏电影删除成功', 'success')
         return redirect(url_for('admin.movie_collect_list', page=1))
@@ -490,24 +575,28 @@ def movie_collect_del(collect_id):
 
 
 # 管理员操作日志
-@admin.route('/admin_operate_log_list/', methods=['GET'])
+@admin.route('/admin_operate_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_operate_log_list():
-    return render_template('admin_operate_log_list.html')
+def admin_operate_log_list(page):
+    page_data = AdminOperateLog.query.order_by(AdminOperateLog.created_at.desc()).paginate(page=page,
+                                                                                           per_page=Config.PER_PAGE)
+    return render_template('admin_operate_log_list.html', page_data=page_data)
 
 
 # 管理员登录日志
-@admin.route('/admin_login_log_list/', methods=['GET'])
+@admin.route('/admin_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_login_log_list():
-    return render_template('admin_login_log_list.html')
+def admin_login_log_list(page):
+    page_data = AdminLog.query.order_by(AdminLog.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_login_log_list.html', page_data=page_data)
 
 
 # 用户登录日志
-@admin.route('/user_login_log_list/', methods=['GET'])
+@admin.route('/user_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def user_login_log_list():
-    return render_template('admin_user_login_log_list.html')
+def user_login_log_list(page):
+    page_data = UserLog.query.order_by(UserLog.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_user_login_log_list.html', page_data=page_data)
 
 
 # 添加角色
