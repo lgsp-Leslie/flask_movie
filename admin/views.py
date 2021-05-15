@@ -6,10 +6,10 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 import constants
-from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm
+from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm, AuthForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog
+from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog, Auth
 from templates.utils.filters import change_filename
 from templates.utils.decorator import admin_login_req
 from templates.utils.utils import admin_operate_log, admin_login_log
@@ -219,8 +219,6 @@ def movie_add():
             return redirect(url_for('admin.movie_list', page=1))
         except Exception as e:
             flash('添加电影失败', 'error')
-            print(e)
-            print(form.errors)
     return render_template('admin_movie_add.html', form=form)
 
 
@@ -578,8 +576,8 @@ def movie_collect_del(collect_id):
 @admin.route('/admin_operate_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def admin_operate_log_list(page):
-    page_data = AdminOperateLog.query.order_by(AdminOperateLog.created_at.desc()).paginate(page=page,
-                                                                                           per_page=Config.PER_PAGE)
+    page_data = AdminOperateLog.query.order_by(AdminOperateLog.created_at.desc(), AdminOperateLog.id.desc()).paginate(
+        page=page, per_page=Config.PER_PAGE)
     return render_template('admin_operate_log_list.html', page_data=page_data)
 
 
@@ -587,7 +585,8 @@ def admin_operate_log_list(page):
 @admin.route('/admin_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def admin_login_log_list(page):
-    page_data = AdminLog.query.order_by(AdminLog.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = AdminLog.query.order_by(AdminLog.created_at.desc(), AdminLog.id.desc()).paginate(page=page,
+                                                                                                 per_page=Config.PER_PAGE)
     return render_template('admin_login_log_list.html', page_data=page_data)
 
 
@@ -595,7 +594,8 @@ def admin_login_log_list(page):
 @admin.route('/user_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
 def user_login_log_list(page):
-    page_data = UserLog.query.order_by(UserLog.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = UserLog.query.order_by(UserLog.created_at.desc(), UserLog.id.desc()).paginate(page=page,
+                                                                                              per_page=Config.PER_PAGE)
     return render_template('admin_user_login_log_list.html', page_data=page_data)
 
 
@@ -617,14 +617,81 @@ def role_list():
 @admin.route('/auth_add/', methods=['GET', 'POST'])
 @admin_login_req
 def auth_add():
-    return render_template('admin_auth_add.html')
+    form = AuthForm()
+    if form.validate_on_submit():
+        try:
+            auth_obj = Auth(name=form.name.data, url=form.url.data)
+            db.session.add(auth_obj)
+
+            reason = '添加权限：%s' % form.name.data
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
+            db.session.commit()
+            flash('%s权限添加成功' % form.name.data, 'success')
+            return redirect(url_for('admin.auth_list', page=1))
+        except Exception as e:
+            flash('权限添加失败，请稍后再试', 'danger')
+            return redirect(url_for('admin.auth_add'))
+
+    return render_template('admin_auth_add.html', form=form)
+
+
+# 编辑权限
+@admin.route('/auth_edit/<int:auth_id>/', methods=['GET', 'POST'])
+@admin_login_req
+def auth_edit(auth_id):
+    form = AuthForm()
+    auth_obj = Auth.query.filter_by(id=auth_id).first()
+    if not auth_obj:
+        flash('权限不存在，刷新后重试', 'warning')
+        return redirect(url_for('admin.auth_list', page=1))
+    if form.validate_on_submit():
+        try:
+            auth_obj.name = form.name.data
+            auth_obj.url = form.url.data
+            db.session.add(auth_obj)
+
+            reason = '编辑权限：%s' % form.name.data
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
+            db.session.commit()
+            flash('%s权限修改成功' % form.name.data, 'success')
+            return redirect(url_for('admin.auth_list', page=1))
+        except Exception as e:
+            flash('权限添加失败，请稍后再试', 'danger')
+            return redirect(url_for('admin.auth_add'))
+
+    return render_template('admin_auth_edit.html', form=form, auth_obj=auth_obj)
+
+
+# 删除权限
+@admin.route('/auth_del/<int:auth_id>/')
+@admin_login_req
+def auth_del(auth_id):
+    try:
+        auth_obj = Auth.query.filter_by(id=auth_id).first()
+        if not auth_obj:
+            flash('查询不到该权限，请刷新后重试', 'warning')
+            return redirect(url_for('admin.auth_list', page=1))
+        reason = '删除权限：{}'.format(auth_obj.name)
+        db.session.delete(auth_obj)
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+        db.session.commit()
+        flash('权限删除成功', 'success')
+    except Exception as e:
+        flash('删除权限失败，稍后再试', 'danger')
+    return redirect(url_for('admin.auth_list', page=1))
 
 
 # 权限列表
-@admin.route('/auth_list/', methods=['GET'])
+@admin.route('/auth_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def auth_list():
-    return render_template('admin_auth_list.html')
+def auth_list(page):
+    page_data = Auth.query.order_by(Auth.created_at.desc(), Auth.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_auth_list.html', page_data=page_data)
 
 
 # 添加管理员

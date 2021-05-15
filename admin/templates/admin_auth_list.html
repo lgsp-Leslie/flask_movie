@@ -1,8 +1,10 @@
 {% extends 'admin_base.html' %}
+{% from 'macro/page_nav.html' import page_nav %}
 {% block content %}
     {% include 'components/admin_nav.html' %}
     {% include 'components/admin_aside_menu.html' %}
     <div class="content-wrapper">
+    {% include 'components/flash_messages.html' %}
         <!--内容-->
         <section class="content-header">
             <h1>微电影管理系统</h1>
@@ -34,35 +36,30 @@
                                 <tbody>
                                 <tr>
                                     <th>编号</th>
-                                    <th>名称</th>
-                                    <th>地址</th>
+                                    <th>权限名称</th>
+                                    <th>权限路径</th>
                                     <th>添加时间</th>
                                     <th>操作事项</th>
                                 </tr>
+                                {% for item in page_data.items %}
                                 <tr>
-                                    <td>1</td>
-                                    <td>添加标签</td>
-                                    <td>/tag/add/</td>
-                                    <td>2017-06-01</td>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.url }}</td>
+                                    <td>{{ item.created_at }}</td>
                                     <td>
-                                        <a class="label label-success">编辑</a>
+                                        <a href="{{ url_for('admin.auth_edit', auth_id=item.id) }}" class="label label-success">编辑</a>
                                         &nbsp;
-                                        <a class="label label-danger">删除</a>
+                                        <a href="{{ url_for('admin.auth_del', auth_id=item.id) }}" class="label label-danger">删除</a>
                                     </td>
                                 </tr>
+
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                         <div class="box-footer clearfix">
-                            <ul class="pagination pagination-sm no-margin pull-right">
-                                <li><a href="#">首页</a></li>
-                                <li><a href="#">上一页</a></li>
-                                <li><a href="#">1</a></li>
-                                <li><a href="#">2</a></li>
-                                <li><a href="#">3</a></li>
-                                <li><a href="#">下一页</a></li>
-                                <li><a href="#">尾页</a></li>
-                            </ul>
+                            {{ page_nav(page_data, 'admin.auth_list') }}
                         </div>
                     </div>
                 </div>

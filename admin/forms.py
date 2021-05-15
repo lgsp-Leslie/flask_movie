@@ -152,3 +152,17 @@ class ModifyPasswordForm(FlaskForm):
         admin_obj = Admin.query.filter_by(username=username).first()
         if not admin_obj.check_password(pwd):
             raise ValidationError('旧密码错误')
+
+
+class AuthForm(FlaskForm):
+    name = StringField(label='权限名称', validators=[validators.DataRequired('权限名称不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入权限名称！'
+    })
+    url = StringField(label='权限路径', validators=[validators.DataRequired('权限路径不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入权限路径！'
+    })
+    submit = SubmitField(label='保存', render_kw={
+        'class': 'btn btn-primary',
+    })
