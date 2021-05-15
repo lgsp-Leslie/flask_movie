@@ -7,7 +7,7 @@ import constants
 from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview, User
+from models import db, Tag, Movie, Preview, User, Comment, MovieCollect
 from templates.utils.filters import admin_login_req, change_filename
 
 admin = Blueprint('admin', __name__,
@@ -407,17 +407,55 @@ def user_enable(user_id):
 
 
 # 评论列表
-@admin.route('/comment_list/', methods=['GET'])
+@admin.route('/comment_list/<int:page>', methods=['GET'])
 @admin_login_req
-def comment_list():
-    return render_template('admin_comment_list.html')
+def comment_list(page):
+    page_data = Comment.query.order_by(Comment.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_comment_list.html', page_data=page_data)
+
+
+# 删除评论
+@admin.route('/comment_del/<int:comment_id>', methods=['GET'])
+@admin_login_req
+def comment_del(comment_id):
+    comment_obj = Comment.query.filter_by(id=comment_id).first()
+    if comment_obj is None:
+        flash('评论不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.comment_list', page=1))
+    try:
+        db.session.delete(comment_obj)
+        db.session.commit()
+        flash('评论删除成功', 'success')
+        return redirect(url_for('admin.comment_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，稍后重试', 'danger')
+        return redirect(url_for('admin.comment_list', page=1))
 
 
 # 电影收藏列表
-@admin.route('/movie_collect_list/', methods=['GET'])
+@admin.route('/movie_collect_list/<int:page>', methods=['GET'])
 @admin_login_req
-def movie_collect_list():
-    return render_template('admin_movie_collect_list.html')
+def movie_collect_list(page):
+    page_data = MovieCollect.query.order_by(MovieCollect.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_movie_collect_list.html', page_data=page_data)
+
+
+# 删除收藏电影
+@admin.route('/movie_collect_del/<int:collect_id>', methods=['GET'])
+@admin_login_req
+def movie_collect_del(collect_id):
+    movie_collect_obj = MovieCollect.query.filter_by(id=collect_id).first()
+    if movie_collect_obj is None:
+        flash('收藏电影不存在，请刷新后重试', 'danger')
+        return redirect(url_for('admin.movie_collect_list', page=1))
+    try:
+        db.session.delete(movie_collect_obj)
+        db.session.commit()
+        flash('收藏电影删除成功', 'success')
+        return redirect(url_for('admin.movie_collect_list', page=1))
+    except Exception as e:
+        flash('服务器正忙，稍后重试', 'danger')
+        return redirect(url_for('admin.movie_collect_list', page=1))
 
 
 # 管理员操作日志
