@@ -4,7 +4,7 @@ from flask import flash, session
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, validators, ValidationError, FileField, TextAreaField, \
-    SelectField, SelectMultipleField
+    SelectField, SelectMultipleField, BooleanField
 
 import constants
 from models import Admin, Tag
@@ -180,3 +180,26 @@ class RoleForm(FlaskForm):
     submit = SubmitField(label='保存', render_kw={
         'class': 'btn btn-primary',
     })
+
+
+class AdminForm(FlaskForm):
+    username = StringField(label='账号', validators=[validators.DataRequired('账号不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入账号'
+    })
+    password = PasswordField(label='密码', validators=[validators.DataRequired('密码不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入密码'
+    })
+    re_password = PasswordField(label='确认密码', validators=[validators.DataRequired('确认密码不能为空'), validators.EqualTo('password', '两次密码不一样，请确认')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入确认密码'
+    })
+    role_id = SelectField(label='所属角色', coerce=int, choices='', render_kw={
+        'class': 'form-control',
+    })
+    is_super = BooleanField(label='是否为超级管理员', default=False)
+    submit = SubmitField(label='保存', render_kw={
+        'class': 'btn btn-primary',
+    })
+

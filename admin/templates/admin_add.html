@@ -1,8 +1,10 @@
 {% extends 'admin_base.html' %}
+{% from 'macro/form_errors.html' import form_field_errors %}
 {% block content %}
     {% include 'components/admin_nav.html' %}
     {% include 'components/admin_aside_menu.html' %}
     <div class="content-wrapper">
+    {% include 'components/flash_messages.html' %}
         <!--内容-->
         <section class="content-header">
             <h1>微电影管理系统</h1>
@@ -18,31 +20,39 @@
                         <div class="box-header with-border">
                             <h3 class="box-title">添加管理员</h3>
                         </div>
-                        <form role="form">
+                        <form role="form" action="" method="post">
+                            {{ form.csrf_token }}
                             <div class="box-body">
                                 <div class="form-group">
-                                    <label for="input_name">管理员名称</label>
-                                    <input type="text" class="form-control" id="input_name" placeholder="请输入管理员名称！">
+                                    {{ form.username.label }}
+                                    {{ form.username }}
+                                    {{ form_field_errors(form.username.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_pwd">管理员密码</label>
-                                    <input type="password" class="form-control" id="input_pwd" placeholder="请输入管理员密码！">
+                                    {{ form.password.label }}
+                                    {{ form.password }}
+                                    {{ form_field_errors(form.password.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_re_pwd">管理员重复密码</label>
-                                    <input type="password" class="form-control" id="input_re_pwd"
-                                           placeholder="请输入管理员重复密码！">
+                                    {{ form.re_password.label }}
+                                    {{ form.re_password }}
+                                    {{ form_field_errors(form.re_password.errors) }}
                                 </div>
                                 <div class="form-group">
-                                    <label for="input_role_id">所属角色</label>
-                                    <select class="form-control" id="input_role_id">
-                                        <option value="0">---请选择所属角色---</option>
-                                        <option value="1">xxx</option>
-                                    </select>
+                                    {{ form.role_id.label }}
+                                    {{ form.role_id }}
+                                    {{ form_field_errors(form.role_id.errors) }}
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        {{ form.is_super }}
+                                        {{ form.is_super.label.text }}
+                                    </label>
+                                    {{ form_field_errors(form.is_super.errors) }}
                                 </div>
                             </div>
                             <div class="box-footer">
-                                <button type="submit" class="btn btn-primary">添加</button>
+                                {{ form.submit }}
                             </div>
                         </form>
                     </div>

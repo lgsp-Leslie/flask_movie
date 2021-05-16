@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 import constants
-from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm, AuthForm, RoleForm
+from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm, AuthForm, RoleForm, AdminForm
 
 from conf import Config
 from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog, \
@@ -773,11 +773,47 @@ def role_edit(role_id):
 @admin.route('/admin_add/', methods=['GET', 'POST'])
 @admin_login_req
 def admin_add():
-    return render_template('admin_add.html')
+    form = AdminForm()
+    form.role_id.choices = [(v.id, v.name) for v in Role.query.all()]
+    if form.validate_on_submit():
+        data = form.data
+        is_super = 0 if data['is_super'] else 1
+
+        admin_obj = Admin(username=data['username'], password=generate_password_hash(data['password']), role_id=data['role_id'], is_super=is_super)
+        db.session.add(admin_obj)
+
+        reason = '添加管理员：%s' % data['username']
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
+        db.session.commit()
+        flash('添加管理员成功', 'success')
+        return redirect(url_for('admin.admin_list', page=1))
+
+    return render_template('admin_add.html', form=form)
 
 
 # 管理员列表
-@admin.route('/admin_list/', methods=['GET'])
+@admin.route('/admin_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_list():
-    return render_template('admin_list.html')
+def admin_list(page=1):
+    page_data = Admin.query.order_by(Admin.created_at.desc(), Admin.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('admin_list.html', page_data=page_data)
+
+
+@admin.route('/admin_del/<int:admin_id>/', methods=['GET'])
+@admin_login_req
+def admin_del(admin_id):
+    admin_obj = Admin.query.filter_by(id=admin_id).first()
+    if not admin_obj:
+        flash('查询不到该管理员，请刷新后重试', 'warning')
+        return redirect(url_for('admin.admin_list', page=1))
+
+    reason = '删除管理员：{}'.format(admin_obj.username)
+    db.session.delete(admin_obj)
+    admin_operate_log_obj = admin_operate_log(reason)
+    db.session.add(admin_operate_log_obj)
+
+    db.session.commit()
+    flash('管理员删除成功！', 'success')
+    return redirect(url_for('admin.admin_list', page=1))
