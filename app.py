@@ -20,3 +20,8 @@ app.register_blueprint(home, url_prefix='/')
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('home_404.html'), 404
+
+
+@app.errorhandler(403)
+def page_not_found(error):
+    return render_template('403.html'), 403

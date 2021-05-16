@@ -11,9 +11,9 @@ from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswo
 from conf import Config
 from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog, \
     Auth, Role
-from templates.utils.filters import change_filename
-from templates.utils.decorator import admin_login_req
-from templates.utils.utils import admin_operate_log, admin_login_log
+from utils.filters import change_filename
+from utils.decorator import admin_login_req, admin_auth
+from utils.utils import admin_operate_log, admin_login_log
 
 admin = Blueprint('admin', __name__,
                   template_folder='templates',
@@ -31,6 +31,7 @@ def tpl_extra():
 
 @admin.route('/')
 @admin_login_req
+@admin_auth
 def index():
     return render_template('admin_index.html')
 
@@ -94,6 +95,7 @@ def edit_password():
 # 添加标签
 @admin.route('/tag_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def tag_add():
     form = TagForm()
     if form.validate_on_submit():
@@ -118,6 +120,7 @@ def tag_add():
 # 编辑标签
 @admin.route('/tag_edit/<int:tag_id>/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def tag_edit(tag_id):
     form = TagForm()
     tag_obj = Tag.query.get(tag_id)
@@ -147,14 +150,16 @@ def tag_edit(tag_id):
 # 标签列表
 @admin.route('/tag_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def tag_list(page=1):
-    page_data = Tag.query.paginate(page, per_page=Config.PER_PAGE)
+    page_data = Tag.query.order_by(Tag.created_at.desc(), Tag.id.desc()).paginate(page, per_page=Config.PER_PAGE)
     return render_template('admin_tag_list.html', page_data=page_data)
 
 
 # 删除标签
 @admin.route('/tag_del/<int:tag_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def tag_del(tag_id):
     tag_obj = Tag.query.filter_by(id=tag_id).first()
     if not tag_obj:
@@ -175,6 +180,7 @@ def tag_del(tag_id):
 # 添加电影
 @admin.route('/movie_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def movie_add():
     form = MovieForm()
     form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
@@ -226,6 +232,7 @@ def movie_add():
 # 编辑电影
 @admin.route('/movie_edit/<int:movie_id>/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def movie_edit(movie_id):
     form = MovieForm()
     form.tag_id.choices = [(v.id, v.name) for v in Tag.query.all()]
@@ -283,6 +290,7 @@ def movie_edit(movie_id):
 # 电影列表
 @admin.route('/movie_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def movie_list(page=1):
     page_data = Movie.query.order_by(Movie.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_movie_list.html', page_data=page_data)
@@ -291,6 +299,7 @@ def movie_list(page=1):
 # 删除电影
 @admin.route('/movie_del/<int:movie_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def movie_del(movie_id):
     movie_obj = Movie.query.filter_by(id=movie_id).first()
     if not movie_obj:
@@ -312,6 +321,7 @@ def movie_del(movie_id):
 # 添加预告
 @admin.route('/preview_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def preview_add():
     form = PreviewForm()
     if form.validate_on_submit():
@@ -343,6 +353,7 @@ def preview_add():
 # 预告列表
 @admin.route('/preview_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def preview_list(page=1):
     page_data = Preview.query.order_by(Preview.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_preview_list.html', page_data=page_data)
@@ -351,6 +362,7 @@ def preview_list(page=1):
 # 删除预告
 @admin.route('/preview_del/<int:prev_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def preview_del(prev_id):
     try:
         preview_obj = Preview.query.filter_by(id=prev_id).first()
@@ -376,6 +388,7 @@ def preview_del(prev_id):
 # 编辑预告
 @admin.route('/preview_edit/<int:prev_id>/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def preview_edit(prev_id):
     form = PreviewForm()
     preview_obj = Preview.query.filter_by(id=prev_id).first()
@@ -418,6 +431,7 @@ def preview_edit(prev_id):
 # 用户详情
 @admin.route('/user_view/<int:user_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_view(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
     if user_obj is None:
@@ -429,6 +443,7 @@ def user_view(user_id):
 # 用户列表
 @admin.route('/user_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_list(page=1):
     page_data = User.query.order_by(User.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_user_list.html', page_data=page_data)
@@ -437,6 +452,7 @@ def user_list(page=1):
 # 删除用户
 @admin.route('/user_del/<int:user_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_del(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
     if user_obj is None:
@@ -461,6 +477,7 @@ def user_del(user_id):
 # 禁用用户
 @admin.route('/user_disable/<int:user_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_disable(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
     if user_obj is None:
@@ -486,6 +503,7 @@ def user_disable(user_id):
 # 启用用户
 @admin.route('/user_enable/<int:user_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_enable(user_id):
     user_obj = User.query.filter_by(id=user_id).first()
     if user_obj is None:
@@ -510,6 +528,7 @@ def user_enable(user_id):
 # 评论列表
 @admin.route('/comment_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def comment_list(page=1):
     page_data = Comment.query.order_by(Comment.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_comment_list.html', page_data=page_data)
@@ -518,6 +537,7 @@ def comment_list(page=1):
 # 删除评论
 @admin.route('/comment_del/<int:comment_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def comment_del(comment_id):
     comment_obj = Comment.query.filter_by(id=comment_id).first()
     if comment_obj is None:
@@ -542,6 +562,7 @@ def comment_del(comment_id):
 # 电影收藏列表
 @admin.route('/movie_collect_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def movie_collect_list(page=1):
     page_data = MovieCollect.query.order_by(MovieCollect.created_at.desc()).paginate(page=page,
                                                                                      per_page=Config.PER_PAGE)
@@ -551,6 +572,7 @@ def movie_collect_list(page=1):
 # 删除收藏电影
 @admin.route('/movie_collect_del/<int:collect_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def movie_collect_del(collect_id):
     movie_collect_obj = MovieCollect.query.filter_by(id=collect_id).first()
     if movie_collect_obj is None:
@@ -576,6 +598,7 @@ def movie_collect_del(collect_id):
 # 管理员操作日志
 @admin.route('/admin_operate_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def admin_operate_log_list(page=1):
     page_data = AdminOperateLog.query.order_by(AdminOperateLog.created_at.desc(), AdminOperateLog.id.desc()).paginate(
         page=page, per_page=Config.PER_PAGE)
@@ -585,6 +608,7 @@ def admin_operate_log_list(page=1):
 # 管理员登录日志
 @admin.route('/admin_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def admin_login_log_list(page=1):
     page_data = AdminLog.query.order_by(AdminLog.created_at.desc(), AdminLog.id.desc()).paginate(page=page,
                                                                                                  per_page=Config.PER_PAGE)
@@ -594,6 +618,7 @@ def admin_login_log_list(page=1):
 # 用户登录日志
 @admin.route('/user_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def user_login_log_list(page=1):
     page_data = UserLog.query.order_by(UserLog.created_at.desc(), UserLog.id.desc()).paginate(page=page,
                                                                                               per_page=Config.PER_PAGE)
@@ -603,6 +628,7 @@ def user_login_log_list(page=1):
 # 添加权限
 @admin.route('/auth_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def auth_add():
     form = AuthForm()
     if form.validate_on_submit():
@@ -627,6 +653,7 @@ def auth_add():
 # 编辑权限
 @admin.route('/auth_edit/<int:auth_id>/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def auth_edit(auth_id):
     form = AuthForm()
     auth_obj = Auth.query.filter_by(id=auth_id).first()
@@ -656,6 +683,7 @@ def auth_edit(auth_id):
 # 删除权限
 @admin.route('/auth_del/<int:auth_id>/')
 @admin_login_req
+@admin_auth
 def auth_del(auth_id):
     try:
         auth_obj = Auth.query.filter_by(id=auth_id).first()
@@ -676,6 +704,7 @@ def auth_del(auth_id):
 # 权限列表
 @admin.route('/auth_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def auth_list(page=1):
     page_data = Auth.query.order_by(Auth.created_at.desc(), Auth.id.desc()).paginate(page=page,
                                                                                      per_page=Config.PER_PAGE)
@@ -685,6 +714,7 @@ def auth_list(page=1):
 # 添加角色
 @admin.route('/role_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def role_add():
     form = RoleForm()
     form.auths.choices = [(v.id, v.name) for v in Auth.query.all()]
@@ -712,6 +742,7 @@ def role_add():
 # 角色列表
 @admin.route('/role_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def role_list(page=1):
     page_data = Role.query.order_by(Role.created_at.desc(), Role.id.desc()).paginate(page=page,
                                                                                      per_page=Config.PER_PAGE)
@@ -721,6 +752,7 @@ def role_list(page=1):
 # 删除角色
 @admin.route('/role_del/<int:role_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def role_del(role_id):
     role_obj = Role.query.filter_by(id=role_id).first()
     if not role_obj:
@@ -740,6 +772,7 @@ def role_del(role_id):
 # 编辑角色
 @admin.route('/role_edit/<int:role_id>/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def role_edit(role_id):
     form = RoleForm()
     form.auths.choices = [(v.id, v.name) for v in Auth.query.all()]
@@ -772,6 +805,7 @@ def role_edit(role_id):
 # 添加管理员
 @admin.route('/admin_add/', methods=['GET', 'POST'])
 @admin_login_req
+@admin_auth
 def admin_add():
     form = AdminForm()
     form.role_id.choices = [(v.id, v.name) for v in Role.query.all()]
@@ -796,6 +830,7 @@ def admin_add():
 # 管理员列表
 @admin.route('/admin_list/<int:page>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def admin_list(page=1):
     page_data = Admin.query.order_by(Admin.created_at.desc(), Admin.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_list.html', page_data=page_data)
@@ -803,6 +838,7 @@ def admin_list(page=1):
 
 @admin.route('/admin_del/<int:admin_id>/', methods=['GET'])
 @admin_login_req
+@admin_auth
 def admin_del(admin_id):
     admin_obj = Admin.query.filter_by(id=admin_id).first()
     if not admin_obj:
