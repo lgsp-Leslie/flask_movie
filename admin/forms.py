@@ -4,10 +4,10 @@ from flask import flash, session
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, validators, ValidationError, FileField, TextAreaField, \
-    SelectField
+    SelectField, SelectMultipleField
 
 import constants
-from models import Admin, Tag, Movie
+from models import Admin, Tag
 
 
 class LoginForm(FlaskForm):
@@ -163,6 +163,20 @@ class AuthForm(FlaskForm):
         'class': 'form-control',
         'placeholder': '请输入权限路径！'
     })
+    submit = SubmitField(label='保存', render_kw={
+        'class': 'btn btn-primary',
+    })
+
+
+class RoleForm(FlaskForm):
+    name = StringField(label='角色名称', validators=[validators.DataRequired('角色名称不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入角色名称！'
+    })
+    auths = SelectMultipleField(label='角色权限列表', validators=[validators.DataRequired('角色权限不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请选择角色权限！'
+    }, coerce=int, choices='', description='按住Shift或Ctrl再鼠标点击可进行多选操作！')
     submit = SubmitField(label='保存', render_kw={
         'class': 'btn btn-primary',
     })

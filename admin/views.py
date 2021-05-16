@@ -6,10 +6,11 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 import constants
-from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm, AuthForm
+from admin.forms import LoginForm, TagForm, MovieForm, PreviewForm, ModifyPasswordForm, AuthForm, RoleForm
 
 from conf import Config
-from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog, Auth
+from models import db, Tag, Movie, Preview, User, Comment, MovieCollect, Admin, AdminOperateLog, AdminLog, UserLog, \
+    Auth, Role
 from templates.utils.filters import change_filename
 from templates.utils.decorator import admin_login_req
 from templates.utils.utils import admin_operate_log, admin_login_log
@@ -575,7 +576,7 @@ def movie_collect_del(collect_id):
 # 管理员操作日志
 @admin.route('/admin_operate_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_operate_log_list(page):
+def admin_operate_log_list(page=1):
     page_data = AdminOperateLog.query.order_by(AdminOperateLog.created_at.desc(), AdminOperateLog.id.desc()).paginate(
         page=page, per_page=Config.PER_PAGE)
     return render_template('admin_operate_log_list.html', page_data=page_data)
@@ -584,7 +585,7 @@ def admin_operate_log_list(page):
 # 管理员登录日志
 @admin.route('/admin_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def admin_login_log_list(page):
+def admin_login_log_list(page=1):
     page_data = AdminLog.query.order_by(AdminLog.created_at.desc(), AdminLog.id.desc()).paginate(page=page,
                                                                                                  per_page=Config.PER_PAGE)
     return render_template('admin_login_log_list.html', page_data=page_data)
@@ -593,24 +594,10 @@ def admin_login_log_list(page):
 # 用户登录日志
 @admin.route('/user_login_log_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def user_login_log_list(page):
+def user_login_log_list(page=1):
     page_data = UserLog.query.order_by(UserLog.created_at.desc(), UserLog.id.desc()).paginate(page=page,
                                                                                               per_page=Config.PER_PAGE)
     return render_template('admin_user_login_log_list.html', page_data=page_data)
-
-
-# 添加角色
-@admin.route('/role_add/', methods=['GET', 'POST'])
-@admin_login_req
-def role_add():
-    return render_template('admin_role_add.html')
-
-
-# 角色列表
-@admin.route('/role_list/', methods=['GET'])
-@admin_login_req
-def role_list():
-    return render_template('admin_role_list.html')
 
 
 # 添加权限
@@ -689,9 +676,97 @@ def auth_del(auth_id):
 # 权限列表
 @admin.route('/auth_list/<int:page>/', methods=['GET'])
 @admin_login_req
-def auth_list(page):
-    page_data = Auth.query.order_by(Auth.created_at.desc(), Auth.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+def auth_list(page=1):
+    page_data = Auth.query.order_by(Auth.created_at.desc(), Auth.id.desc()).paginate(page=page,
+                                                                                     per_page=Config.PER_PAGE)
     return render_template('admin_auth_list.html', page_data=page_data)
+
+
+# 添加角色
+@admin.route('/role_add/', methods=['GET', 'POST'])
+@admin_login_req
+def role_add():
+    form = RoleForm()
+    form.auths.choices = [(v.id, v.name) for v in Auth.query.all()]
+    if form.validate_on_submit():
+        data = form.data
+        # print(data)
+        print(data['auths'])
+        role_obj = Role(
+            name=data['name'],
+            auths=','.join(map(lambda v: str(v), data['auths']))
+        )
+        db.session.add(role_obj)
+
+        reason = '添加角色：%s' % data['name']
+        admin_operate_log_obj = admin_operate_log(reason)
+        db.session.add(admin_operate_log_obj)
+
+        db.session.commit()
+        flash('添加角色成功', 'success')
+        return redirect(url_for('admin.role_list', page=1))
+
+    return render_template('admin_role_add.html', form=form)
+
+
+# 角色列表
+@admin.route('/role_list/<int:page>/', methods=['GET'])
+@admin_login_req
+def role_list(page=1):
+    page_data = Role.query.order_by(Role.created_at.desc(), Role.id.desc()).paginate(page=page,
+                                                                                     per_page=Config.PER_PAGE)
+    return render_template('admin_role_list.html', page_data=page_data)
+
+
+# 删除角色
+@admin.route('/role_del/<int:role_id>/', methods=['GET'])
+@admin_login_req
+def role_del(role_id):
+    role_obj = Role.query.filter_by(id=role_id).first()
+    if not role_obj:
+        flash('查询不到该角色，请刷新后重试', 'warning')
+        return redirect(url_for('admin.role_list', page=1))
+
+    reason = '删除角色：{}'.format(role_obj.name)
+    db.session.delete(role_obj)
+    admin_operate_log_obj = admin_operate_log(reason)
+    db.session.add(admin_operate_log_obj)
+
+    db.session.commit()
+    flash('角色删除成功！', 'success')
+    return redirect(url_for('admin.role_list', page=1))
+
+
+# 编辑角色
+@admin.route('/role_edit/<int:role_id>/', methods=['GET', 'POST'])
+@admin_login_req
+def role_edit(role_id):
+    form = RoleForm()
+    form.auths.choices = [(v.id, v.name) for v in Auth.query.all()]
+    role_obj = Role.query.filter_by(id=role_id).first()
+    if request.method == 'GET':
+        auths = role_obj.auths
+        form.auths.data = list(map(lambda v: int(v), auths.split(',')))
+    if not role_obj:
+        flash('角色不存在，刷新后重试', 'warning')
+        return redirect(url_for('admin.role_list', page=1))
+    if form.validate_on_submit():
+        try:
+            role_obj.name = form.name.data
+            role_obj.auths = ','.join(map(lambda v: str(v), form.auths.data))
+            db.session.add(role_obj)
+
+            reason = '编辑角色：%s' % form.name.data
+            admin_operate_log_obj = admin_operate_log(reason)
+            db.session.add(admin_operate_log_obj)
+
+            db.session.commit()
+            flash('%s角色修改成功' % form.name.data, 'success')
+            return redirect(url_for('admin.role_list', page=1))
+        except Exception as e:
+            flash('角色修改失败，请稍后再试', 'danger')
+            return redirect(url_for('admin.role_add'))
+    return render_template('admin_role_edit.html', form=form, role_obj=role_obj)
 
 
 # 添加管理员
