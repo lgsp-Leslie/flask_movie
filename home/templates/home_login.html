@@ -1,4 +1,5 @@
 {% extends 'home_base.html' %}
+{% from 'macro/form_errors.html' import form_field_errors %}
 {% block title %}用户登录{% endblock %}
 
 {% block content %}
@@ -13,25 +14,47 @@
                         <h3 class="panel-title"><span class="glyphicon glyphicon-log-in"></span>&nbsp;会员登录</h3>
                     </div>
                     <div class="panel-body">
-                        <form role="form">
+                        <form role="form" action="" method="post">
+                            {{ form.csrf_token }}
                             <fieldset>
                                 <div class="form-group">
                                     <label for="input_contact"><span
-                                            class="glyphicon glyphicon-user"></span>&nbsp;账号</label>
-                                    <input id="input_contact" class="form-control input-lg" placeholder="用户名/邮箱/手机号码"
-                                           name="contact" type="text" autofocus>
+                                            class="glyphicon glyphicon-user"></span>&nbsp;{{ form.username.label.text }}
+                                    </label>
+                                    {{ form.username }}
                                 </div>
-                                <div class="col-md-12" id="error_contact"></div>
+                                <div class="col-md-12">
+                                    {{ form_field_errors(form.username.error) }}
+                                </div>
                                 <div class="form-group">
                                     <label for="input_password"><span
-                                            class="glyphicon glyphicon-lock"></span>&nbsp;密码</label>
-                                    <input id="input_password" class="form-control input-lg" placeholder="密码"
-                                           name="password" type="password" value="">
+                                            class="glyphicon glyphicon-lock"></span>&nbsp;{{ form.password.label.text }}
+                                    </label>
+                                    {{ form.password }}
                                 </div>
-                                <div class="col-md-12" id="error_password"></div>
-                                <a href="{{ url_for('home.member_center') }}" class="btn btn-lg btn-success btn-block">登录</a>
+                                <div class="col-md-12">
+                                    {{ form_field_errors(form.password.error) }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="input_password"><span
+                                            class="glyphicon glyphicon-check"></span>&nbsp;{{ form.verify_code.label.text }}
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-xs-6 col-sm-9">{{ form.verify_code }}</div>
+                                        <div class="col-xs-6 col-sm-3">
+                                            <img class="verify_code" src="/code"
+                                                 onclick="this.src='/code?'+ Math.random()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    {{ form_field_errors(form.verify_code.error) }}
+                                </div>
+                                {{ form.submit }}
                                 <hr>
-                                <div class="text-right"><label>未有账号？立即<a
+                                <div class="pull-left"><label><a href="{{ url_for('home.index') }}">返回首页</a></label>
+                                </div>
+                                <div class="pull-right"><label>未有账号？立即<a
                                         href="{{ url_for('home.register') }}">注册</a></label></div>
                             </fieldset>
                         </form>

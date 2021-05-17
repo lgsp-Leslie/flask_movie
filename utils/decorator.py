@@ -5,12 +5,23 @@ from flask import session, redirect, url_for, request, abort
 from models import Admin, Auth, Role
 
 
-# 登录装饰器
+# 管理员登录装饰器
 def admin_login_req(func):
     @wraps(func)
     def decorated_func(*args, **kwargs):
         if 'admin' not in session:
             return redirect(url_for('admin.login', next=request.url))
+        return func(*args, **kwargs)
+
+    return decorated_func
+
+
+# 用户登录装饰器
+def user_login_req(func):
+    @wraps(func)
+    def decorated_func(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('home.login', next=request.url))
         return func(*args, **kwargs)
 
     return decorated_func

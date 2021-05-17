@@ -55,7 +55,9 @@
                                 </div>
                                 {{ form.submit }}
                                 <hr>
-                                <div class="text-right"><label>已有账号？立即<a
+                                <div class="pull-left"><label><a href="{{ url_for('home.index') }}">返回首页</a></label>
+                                </div>
+                                <div class="pull-right"><label>已有账号？立即<a
                                         href="{{ url_for('home.login') }}">登录</a></label></div>
                             </fieldset>
                         </form>
