@@ -1,4 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for
+import uuid
+
+from flask import Blueprint, render_template, redirect, url_for, flash
+from werkzeug.security import generate_password_hash
+
+from home.forms import RegisterForm
+from models import User, db
 
 home = Blueprint('home', __name__,
                  template_folder='templates/',
@@ -35,9 +41,22 @@ def logout():
     return redirect(url_for('home.login'))
 
 
+# 会员注册
 @home.route('/register/', methods=['GET', 'POST'])
 def register():
-    return render_template('home_register.html')
+    form = RegisterForm()
+    if form.validate_on_submit():
+        data = form.data
+        user_obj = User(username=data['username'], password=generate_password_hash(data['password']), email=data['email'], phone=data['phone'], nickname=data['nickname'], uuid=uuid.uuid4().hex)
+        try:
+            db.session.add(user_obj)
+            db.session.commit()
+            flash('注册成功！', 'success')
+            return redirect(url_for('home.login'))
+        except Exception as e:
+            flash('注册失败！', 'danger')
+
+    return render_template('home_register.html', form=form)
 
 
 @home.route('/member_center/', methods=['GET'])

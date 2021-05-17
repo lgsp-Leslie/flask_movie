@@ -14,11 +14,11 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='用户id')
     username = db.Column(db.String(64), nullable=False, comment='用户账号')
     password = db.Column(db.String(256), nullable=False, comment='密码')
-    nickname = db.Column(db.String(64), comment='昵称')
+    nickname = db.Column(db.String(64), comment='昵称', default='匿名')
     email = db.Column(db.String(128), comment='邮箱')
     phone = db.Column(db.String(16), comment='手机号')
     info = db.Column(db.Text, comment='用户简介')
-    status = db.Column(db.Enum(constants.UserStatus), default=constants.UserStatus.USER_ACTIVE.value, comment='用户状态')
+    status = db.Column(db.Enum(constants.UserStatus), default=constants.UserStatus.USER_ACTIVE, comment='用户状态')
     avatar = db.Column(db.String(256), comment='头像')
     created_at = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now(), comment='最后登录时间')
@@ -26,6 +26,9 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 
 class UserLog(db.Model):
