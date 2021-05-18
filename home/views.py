@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from conf import Config
 from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm
-from models import User, db, UserLog
+from models import User, db, UserLog, Preview
 from utils.decorator import user_login_req
 from utils.filters import change_filename
 from utils.utils import get_verify_code, user_login_log
@@ -18,6 +18,7 @@ home = Blueprint('home', __name__,
                  static_folder='../static/home')
 
 
+# 登录验证码
 @home.route('/code')
 def get_code():
     image, code = get_verify_code()
@@ -43,9 +44,11 @@ def search():
     return render_template('home_search.html')
 
 
+# 上映预告
 @home.route('/animation/', methods=['GET'])
 def animation():
-    return render_template('home_animation.html')
+    data = Preview.query.all()
+    return render_template('home_animation.html', data=data)
 
 
 @home.route('/movie_detail/', methods=['GET'])
