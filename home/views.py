@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from conf import Config
 from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm
-from models import User, db, UserLog, Preview
+from models import User, db, UserLog, Preview, Tag, Movie
 from utils.decorator import user_login_req
 from utils.filters import change_filename
 from utils.utils import get_verify_code, user_login_log
@@ -34,9 +34,56 @@ def get_code():
     return response
 
 
-@home.route('/')
-def index():
-    return render_template('home_index.html')
+# 首页
+@home.route('/<int:page>/', methods=['GET'])
+@home.route('/index/<int:page>/', methods=['GET'])
+def index(page=1):
+    tags = Tag.query.all()
+    page_data = Movie.query
+
+    # 标签
+    tid = int(request.args.get('tid', 0))
+    if tid != 0:
+        page_data = page_data.filter_by(tag_id=tid)
+    # 星级
+    star = int(request.args.get('star', 0))
+    if star != 0:
+        page_data = page_data.filter_by(star=star)
+    # 时间
+    time = int(request.args.get('time', 0))
+    if time != 0:
+        if time == 1:
+            page_data = page_data.order_by(Movie.created_at.desc())
+        elif time == 2:
+            page_data = page_data.order_by(Movie.created_at.asc())
+
+    # 播放量
+    pm = int(request.args.get('pm', 0))
+    if pm != 0:
+        if pm == 1:
+            page_data = page_data.order_by(Movie.play_count.desc())
+        elif pm == 2:
+            page_data = page_data.order_by(Movie.play_count.asc())
+
+    # 评论量
+    cm = int(request.args.get('cm', 0))
+    if cm != 0:
+        if cm == 1:
+            page_data = page_data.order_by(Movie.comment_count.desc())
+        elif cm == 2:
+            page_data = page_data.order_by(Movie.comment_count.asc())
+
+    page_data = page_data.paginate(page=page, per_page=Config.PER_PAGE)
+
+    p = dict(
+        tid=tid,
+        star=star,
+        time=time,
+        pm=pm,
+        cm=cm
+    )
+
+    return render_template('home_index.html', tags=tags, p=p, page_data=page_data)
 
 
 @home.route('/search/', methods=['GET'])
@@ -51,8 +98,9 @@ def animation():
     return render_template('home_animation.html', data=data)
 
 
-@home.route('/movie_detail/', methods=['GET'])
-def movie_detail():
+# 电影详情
+@home.route('/movie_detail/<int:movie_id>/', methods=['GET'])
+def movie_detail(movie_id):
     return render_template('home_movie_detail.html')
 
 
