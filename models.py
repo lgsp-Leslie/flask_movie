@@ -24,11 +24,11 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now(), comment='最后登录时间')
     uuid = db.Column(db.String(256), comment='唯一标识符')
 
-    def __repr__(self):
-        return '<User %r>' % self.username
-
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    def __repr__(self):
+        return '<User %r>' % self.username
 
 
 class UserLog(db.Model):

@@ -1,3 +1,4 @@
+from flask import session
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
 from wtforms import StringField, PasswordField, validators, SubmitField, ValidationError, TextAreaField, FileField
@@ -114,3 +115,32 @@ class UserDetailForm(FlaskForm):
                            'accept': '.jpeg, .jpg, .png'
                        })
     submit = SubmitField(label='保存修改', render_kw={'class': 'btn btn-success', })
+
+
+class ModifyPasswordForm(FlaskForm):
+    old_pwd = PasswordField(label='旧密码', validators=[validators.DataRequired('旧密码不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入旧密码！',
+    })
+    pwd = PasswordField(label='新密码', validators=[validators.DataRequired('新密码不能为空')], render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入新密码！',
+    })
+    re_pwd = PasswordField(label='确认新密码',
+                           validators=[validators.DataRequired('确认新密码不能为空'), validators.EqualTo('pwd', '两次密码不一致')],
+                           render_kw={
+                               'class': 'form-control',
+                               'placeholder': '请确认新密码！',
+                           })
+    submit = SubmitField(label='修改密码', render_kw={
+        'class': 'btn btn-primary',
+    })
+
+    def validate_old_pwd(self, field):
+        username = session['user']
+        pwd = field.data
+        user_obj = User.query.filter_by(username=username).first()
+        if not user_obj:
+            raise ValidationError('用户不存在，请重新登录！')
+        if not user_obj.check_password(pwd):
+            raise ValidationError('旧密码错误')

@@ -22,8 +22,6 @@
                                             class="glyphicon glyphicon-user"></span>&nbsp;{{ form.username.label.text }}
                                     </label>
                                     {{ form.username }}
-                                </div>
-                                <div class="col-md-12">
                                     {{ form_field_errors(form.username.error) }}
                                 </div>
                                 <div class="form-group">
@@ -31,8 +29,6 @@
                                             class="glyphicon glyphicon-lock"></span>&nbsp;{{ form.password.label.text }}
                                     </label>
                                     {{ form.password }}
-                                </div>
-                                <div class="col-md-12">
                                     {{ form_field_errors(form.password.error) }}
                                 </div>
                                 <div class="form-group">
@@ -45,10 +41,8 @@
                                             <img class="verify_code" src="/code"
                                                  onclick="this.src='/code?'+ Math.random()">
                                         </div>
+                                        {{ form_field_errors(form.verify_code.error) }}
                                     </div>
-                                </div>
-                                <div class="col-md-12">
-                                    {{ form_field_errors(form.verify_code.error) }}
                                 </div>
                                 {{ form.submit }}
                                 <hr>

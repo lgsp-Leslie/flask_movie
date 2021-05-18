@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from conf import Config
-from home.forms import RegisterForm, LoginForm, UserDetailForm
+from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm
 from models import User, db
 from utils.decorator import user_login_req
 from utils.filters import change_filename
@@ -154,10 +154,19 @@ def member_center():
     return render_template('home_member_center.html', form=form, user_obj=user_obj)
 
 
-@home.route('/edit_password/', methods=['GET'])
+@home.route('/edit_password/', methods=['GET', 'POST'])
 @user_login_req
 def edit_password():
-    return render_template('home_edit_password.html')
+    form = ModifyPasswordForm()
+    if form.validate_on_submit():
+        user_obj = User.query.filter_by(username=session['user']).first()
+        user_obj.password = generate_password_hash(form.pwd.data)
+        db.session.add(user_obj)
+        db.session.commit()
+        flash('密码修改成功,请重新登录', 'success')
+        return redirect(url_for('home.logout'))
+
+    return render_template('home_edit_password.html', form=form)
 
 
 @home.route('/comments/', methods=['GET'])

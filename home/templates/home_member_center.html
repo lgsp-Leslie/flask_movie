@@ -22,8 +22,6 @@
                                             <label for="input_username"><span class="glyphicon glyphicon-user"></span>&nbsp;{{ form.username.label.text }}
                                             </label>
                                             {{ form.username(value=session['user']) }}
-                                        </div>
-                                        <div class="col-md-12">
                                             {{ form_field_errors(form.username.errors ) }}
                                         </div>
                                     </div>
@@ -33,8 +31,6 @@
                                                     class="glyphicon glyphicon-user"></span>&nbsp;{{ form.nickname.label.text }}
                                             </label>
                                             {{ form.nickname(value=user_obj.nickname) }}
-                                        </div>
-                                        <div class="col-md-12">
                                             {{ form_field_errors(form.nickname.errors ) }}
                                         </div>
                                     </div>
@@ -46,8 +42,6 @@
                                             <label for="input_email"><span class="glyphicon glyphicon-envelope"></span>&nbsp;{{ form.email.label.text }}
                                             </label>
                                             {{ form.email(value=user_obj.email) }}
-                                        </div>
-                                        <div class="col-md-12">
                                             {{ form_field_errors(form.email.errors ) }}
                                         </div>
                                     </div>
@@ -57,8 +51,6 @@
                                                     class="glyphicon glyphicon-phone"></span>&nbsp;{{ form.phone.label.text }}
                                             </label>
                                             {{ form.phone(value=user_obj.phone) }}
-                                        </div>
-                                        <div class="col-md-12">
                                             {{ form_field_errors(form.phone.errors ) }}
                                         </div>
                                     </div>
@@ -77,10 +69,6 @@
                                         <img alt="avatar" data-src="holder.js/100x100"
                                              class="img-responsive img-rounded">
                                     {% endif %}
-                                    {#                                    <a class="btn btn-primary" style="margin-top:6px;"><span#}
-                                    {#                                            class="glyphicon glyphicon-open"></span>&nbsp;上传头像</a>#}
-                                </div>
-                                <div class="col-md-12">
                                     {{ form_field_errors(form.avatar.errors ) }}
                                 </div>
                                 <div class="form-group">
@@ -88,8 +76,6 @@
                                             class="glyphicon glyphicon-edit"></span>&nbsp;{{ form.info.label.text }}
                                     </label>
                                     {{ form.info }}
-                                </div>
-                                <div class="col-md-12">
                                     {{ form_field_errors(form.info.errors ) }}
                                 </div>
                                 {{ form.submit }}
