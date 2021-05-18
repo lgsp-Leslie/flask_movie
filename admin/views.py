@@ -836,6 +836,7 @@ def admin_list(page=1):
     return render_template('admin_list.html', page_data=page_data)
 
 
+# 删除管理员
 @admin.route('/admin_del/<int:admin_id>/', methods=['GET'])
 @admin_login_req
 @admin_auth

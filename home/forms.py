@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, validators, SubmitField, ValidationError
+from flask_wtf.file import FileAllowed
+from wtforms import StringField, PasswordField, validators, SubmitField, ValidationError, TextAreaField, FileField
 from wtforms.fields.html5 import EmailField
 
+import constants
 from models import User
 
 
@@ -79,3 +81,36 @@ class LoginForm(FlaskForm):
     submit = SubmitField(label='登录', render_kw={
         'class': 'btn btn-lg btn-success btn-block',
     })
+
+
+class UserDetailForm(FlaskForm):
+    username = StringField(label='用户名', render_kw={
+        'class': 'form-control',
+        'disabled': 'disabled'
+    })
+    nickname = StringField(label='昵称', render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入昵称',
+    })
+    email = EmailField(label='邮箱', render_kw={
+        'class': 'form-control',
+        'placeholder': '请输入邮箱',
+    })
+    phone = StringField(label='手机号码', validators=[validators.Regexp(
+        '^(13[0-9]|14[5|7]|15[0|1|2|3|4|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$',
+        message='手机号码格式不正确！')],
+                        render_kw={
+                            'class': 'form-control',
+                            'placeholder': '请输入手机号码'
+                        })
+    info = TextAreaField(label='个人简介',
+                         render_kw={
+                             'class': 'form-control input-lg',
+                         })
+    avatar = FileField(label='上传头像', validators=[
+        FileAllowed(constants.UPLOAD_IMAGE_TYPE, '请选择合适的图片类型，仅支持{}'.format(constants.UPLOAD_IMAGE_TYPE))],
+                       render_kw={
+                           'class': 'btn',
+                           'accept': '.jpeg, .jpg, .png'
+                       })
+    submit = SubmitField(label='保存修改', render_kw={'class': 'btn btn-success', })
