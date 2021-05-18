@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from conf import Config
 from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm
-from models import User, db
+from models import User, db, UserLog
 from utils.decorator import user_login_req
 from utils.filters import change_filename
 from utils.utils import get_verify_code, user_login_log
@@ -80,6 +80,7 @@ def login():
     return render_template('home_login.html', form=form)
 
 
+# 退出
 @home.route('/logout/', methods=['GET'])
 @user_login_req
 def logout():
@@ -107,6 +108,7 @@ def register():
     return render_template('home_register.html', form=form)
 
 
+# 个人中心
 @home.route('/member_center/', methods=['GET', 'POST'])
 @user_login_req
 def member_center():
@@ -154,6 +156,7 @@ def member_center():
     return render_template('home_member_center.html', form=form, user_obj=user_obj)
 
 
+# 修改密码
 @home.route('/edit_password/', methods=['GET', 'POST'])
 @user_login_req
 def edit_password():
@@ -169,18 +172,24 @@ def edit_password():
     return render_template('home_edit_password.html', form=form)
 
 
+# 评论列表
 @home.route('/comments/', methods=['GET'])
 @user_login_req
 def comments():
     return render_template('home_comments.html')
 
 
-@home.route('/login_log/', methods=['GET'])
+# 登录日志
+@home.route('/login_log/<int:page>', methods=['GET'])
 @user_login_req
-def login_log():
-    return render_template('home_login_log.html')
+def login_log(page=1):
+    user_obj = User.query.filter_by(username=session['user']).first()
+    page_data = user_obj.user_log_list.order_by(UserLog.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+
+    return render_template('home_login_log.html', page_data=page_data)
 
 
+# 电影收藏
 @home.route('/movie_collect/', methods=['GET'])
 @user_login_req
 def movie_collect():
