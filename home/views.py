@@ -86,9 +86,14 @@ def index(page=1):
     return render_template('home_index.html', tags=tags, p=p, page_data=page_data)
 
 
-@home.route('/search/', methods=['GET'])
-def search():
-    return render_template('home_search.html')
+# 搜索
+@home.route('/search/<int:page>', methods=['GET'])
+def search(page=1):
+    key = request.args.get('key', '')
+    movie_obj = Movie.query.filter(Movie.name.ilike('%' + key + '%'))
+    movie_count = movie_obj.count()
+    page_data = movie_obj.order_by(Movie.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    return render_template('home_search.html', key=key, page_data=page_data, movie_count=movie_count)
 
 
 # 上映预告

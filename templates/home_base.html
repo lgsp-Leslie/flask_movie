@@ -62,6 +62,10 @@
             effect: "fadeIn"
         });
     });
+    $('#do_search').click(() => {
+        let key = $('#key_movie').val();
+        location.href = '{{ url_for("home.search", page=1) }}?key=' + key;
+    });
 
 </script>
 {% block js %}{% endblock %}
