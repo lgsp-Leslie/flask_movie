@@ -105,8 +105,10 @@ def animation():
 
 # 电影详情
 @home.route('/movie_detail/<int:movie_id>/', methods=['GET'])
-def movie_detail(movie_id):
-    return render_template('home_movie_detail.html')
+def movie_detail(movie_id=None):
+    movie_obj = Movie.query.get_or_404(int(movie_id))
+
+    return render_template('home_movie_detail.html', movie_obj=movie_obj)
 
 
 # 登录
