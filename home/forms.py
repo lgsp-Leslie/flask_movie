@@ -144,3 +144,12 @@ class ModifyPasswordForm(FlaskForm):
             raise ValidationError('用户不存在，请重新登录！')
         if not user_obj.check_password(pwd):
             raise ValidationError('旧密码错误')
+
+
+class CommentForm(FlaskForm):
+    content = TextAreaField(label='内容', validators=[validators.DataRequired('请输入评论内容')], render_kw={
+        'id': 'input_content',
+    })
+    submit = SubmitField(label='提交评论', render_kw={
+        'class': 'btn btn-success',
+    })

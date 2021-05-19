@@ -7,8 +7,8 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from conf import Config
-from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm
-from models import User, db, UserLog, Preview, Tag, Movie
+from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm, CommentForm
+from models import User, db, UserLog, Preview, Tag, Movie, Comment
 from utils.decorator import user_login_req
 from utils.filters import change_filename
 from utils.utils import get_verify_code, user_login_log
@@ -104,11 +104,33 @@ def animation():
 
 
 # 电影详情
-@home.route('/movie_detail/<int:movie_id>/', methods=['GET'])
-def movie_detail(movie_id=None):
+@home.route('/movie_detail/<int:movie_id>/<int:page>/', methods=['GET', 'POST'])
+def movie_detail(movie_id=None, page=1):
     movie_obj = Movie.query.get_or_404(int(movie_id))
 
-    return render_template('home_movie_detail.html', movie_obj=movie_obj)
+    form = CommentForm()
+    if session['user'] and form.validate_on_submit():
+        data = form.data
+        comment_obj = Comment(
+            content=data['content'],
+            movie_id=movie_id,
+            user_id=session['user_id'],
+        )
+        db.session.add(comment_obj)
+        movie_obj.comment_count = movie_obj.comment_count + 1
+        db.session.add(movie_obj)
+
+        db.session.commit()
+        flash('评论成功', 'success')
+        return redirect(url_for('home.movie_detail', movie_id=movie_id, page=1))
+
+    movie_obj.play_count = movie_obj.play_count + 1
+    db.session.add(movie_obj)
+    db.session.commit()
+
+    page_data = Comment.query.filter_by(movie_id=movie_id).order_by(Comment.created_at.desc(), Comment.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+
+    return render_template('home_movie_detail.html', movie_obj=movie_obj, form=form, page_data=page_data)
 
 
 # 登录
