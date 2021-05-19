@@ -253,10 +253,12 @@ def edit_password():
 
 
 # 评论列表
-@home.route('/comments/', methods=['GET'])
+@home.route('/comments/<int:page>/', methods=['GET'])
 @user_login_req
-def comments():
-    return render_template('home_comments.html')
+def comments(page=1):
+    page_data = Comment.query.filter_by(user_id=session['user_id']).order_by(Comment.created_at.desc(), Comment.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+
+    return render_template('home_comments.html', page_data=page_data)
 
 
 # 登录日志
