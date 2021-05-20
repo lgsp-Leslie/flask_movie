@@ -1,4 +1,5 @@
 {% extends 'home_base.html' %}
+{% from 'macro/page_nav.html' import page_nav %}
 {% block title %}收藏电影{% endblock %}
 {% block content %}
     {% include 'components/home_nav.html' %}
@@ -12,48 +13,27 @@
                     </div>
                     <div class="panel-body">
                         <div class="col-md-12">
-                            {% for item in range(1, 6) %}
+                            {% for item in page_data.items %}
                                 <div class="media">
                                     <div class="media-left">
-                                        <a href="{{ url_for('home.movie_detail') }}">
-                                            <img class="media-object" src="holder.js/131x83" alt="环太平洋">
+                                        <a href="{{ url_for('home.movie_detail', movie_id=item.movie_id, page=1) }}">
+                                            <img class="media-object" style="width: 131px; height: 83px;"
+                                                 src="{{ url_for('static', filename='uploads/' + item.movie.logo) }}"
+                                                 alt="{{ item.movie.name }}">
                                         </a>
                                     </div>
                                     <div class="media-body">
-                                        <h4 class="media-heading">环太平洋<a href="{{ url_for('home.movie_detail') }}"
-                                                                         class="label label-primary pull-right"><span
+                                        <h4 class="media-heading">{{ item.movie.name }}<a
+                                                href="{{ url_for('home.movie_detail', movie_id=item.movie_id, page=1) }}"
+                                                class="label label-primary pull-right"><span
                                                 class="glyphicon glyphicon-play"></span>播放影片</a></h4>
-                                        该片主要讲述了人类为了抵抗怪兽的进攻，研制出了高大的机器战士与来犯怪兽进行对抗的故事。
+                                        {{ item.movie.info }}
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
-                        <div class="col-md-12 text-center" style="margin-top:6px;">
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    <li>
-                                        <a href="#" aria-label="First">
-                                            <span aria-hidden="true">首页</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#" aria-label="Previous">
-                                            <span aria-hidden="true">上一页</span>
-                                        </a>
-                                    </li>
-                                    <li><a href="#">1&nbsp;/&nbsp;10</a></li>
-                                    <li>
-                                        <a href="#" aria-label="Next">
-                                            <span aria-hidden="true">下一页</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#" aria-label="Last">
-                                            <span aria-hidden="true">尾页</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
+                        <div class="col-md-12 " style="margin-top:6px;">
+                            {{ page_nav(page_data, 'home.movie_collect') }}
                         </div>
                     </div>
                 </div>

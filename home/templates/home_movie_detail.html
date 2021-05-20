@@ -108,7 +108,7 @@
                             </div>
                         {% endif %}
                         <ol class="breadcrumb" style="margin-top:6px;">
-                            <li>全部评论(5)</li>
+                            <li>全部评论({{ movie_obj.comment_count }})</li>
                         </ol>
                         {% if session['user'] %}
                             {% include 'components/flash_messages.html' %}
@@ -126,37 +126,45 @@
                                 {{ form.submit }}
                                 &nbsp;
                                 <a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
+                                <div id="show-col-msg" class="text-primary"></div>
+                                <hr>
                             </form>
                         {% endif %}
-                        <ul class="commentList">
-                            {% for item in page_data.items %}
-                                <li class="item cl">
-                                    <a href="javascript:;">
-                                        <i class="avatar size-L radius">
-                                            <img alt="50x50" src="{{ url_for('static', filename='uploads/user/avatar/' + item.user.avatar) }}" class="img-circle"
-                                                 style="border:1px solid #abcdef; width: 50px; height: 50px;">
-                                        </i>
-                                    </a>
-                                    <div class="comment-main">
-                                        <header class="comment-header">
-                                            <div class="comment-meta">
-                                                <a class="comment-author" href="user.html">{{ item.user.username }}</a>
-                                                评论于
-                                                <time title="{{ item.created_at }}" datetime="{{ item.created_at }}">
-                                                    {{ item.created_at }}
-                                                </time>
+                        {% if page_data.items != [] %}
+                            <ul class="commentList">
+                                {% for item in page_data.items %}
+                                    <li class="item cl">
+                                        <a href="javascript:;">
+                                            <i class="avatar size-L radius">
+                                                <img alt="50x50"
+                                                     src="{{ url_for('static', filename='uploads/user/avatar/' + item.user.avatar) }}"
+                                                     class="img-circle"
+                                                     style="border:1px solid #abcdef; width: 50px; height: 50px;">
+                                            </i>
+                                        </a>
+                                        <div class="comment-main">
+                                            <header class="comment-header">
+                                                <div class="comment-meta">
+                                                    <a class="comment-author"
+                                                       href="user.html">{{ item.user.username }}</a>
+                                                    评论于
+                                                    <time title="{{ item.created_at }}"
+                                                          datetime="{{ item.created_at }}">
+                                                        {{ item.created_at }}
+                                                    </time>
+                                                </div>
+                                            </header>
+                                            <div class="comment-body">
+                                                <p>{{ item.content|safe }}</p>
                                             </div>
-                                        </header>
-                                        <div class="comment-body">
-                                            <p>{{ item.content|safe }}</p>
                                         </div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        <div class="col-md-12">
-                            {{ page_nav(page_data, 'home.movie_detail', movie_id=movie_obj.id) }}
-                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="col-md-12">
+                                {{ page_nav(page_data, 'home.movie_detail', movie_id=movie_obj.id) }}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -213,5 +221,31 @@
         });
     </script>
     <!--播放页面-->
+
+    <!--收藏按钮 开始-->
+    <script>
+        $(() => {
+            $('#btn-col').click(function () {
+                let m_id = {{ movie_obj.id }};
+                let u_id = {{ session['user_id'] }};
+                $.ajax({
+                    url: '{{ url_for('home.movie_add_collect') }}',
+                    type: 'GET',
+                    data: 'u_id=' + u_id + '&m_id=' + m_id,
+                    dataType: 'json',
+                    success: (res) => {
+                        if (res.ok == 1) {
+                            $('#show-col-msg').empty();
+                            $('#show-col-msg').append('收藏成功!');
+                        } else if (res.ok == 0) {
+                            $('#show-col-msg').empty();
+                            $('#show-col-msg').append('收藏失败，你已经收藏过该电影了！');
+                        }
+                    }
+                })
+            })
+        });
+    </script>
+    <!--收藏按钮-->
 
 {% endblock %}

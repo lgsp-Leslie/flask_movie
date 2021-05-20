@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 from io import BytesIO
@@ -8,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 from conf import Config
 from home.forms import RegisterForm, LoginForm, UserDetailForm, ModifyPasswordForm, CommentForm
-from models import User, db, UserLog, Preview, Tag, Movie, Comment
+from models import User, db, UserLog, Preview, Tag, Movie, Comment, MovieCollect
 from utils.decorator import user_login_req
 from utils.filters import change_filename
 from utils.utils import get_verify_code, user_login_log
@@ -128,7 +129,9 @@ def movie_detail(movie_id=None, page=1):
     db.session.add(movie_obj)
     db.session.commit()
 
-    page_data = Comment.query.filter_by(movie_id=movie_id).order_by(Comment.created_at.desc(), Comment.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = Comment.query.filter_by(movie_id=movie_id).order_by(Comment.created_at.desc(),
+                                                                    Comment.id.desc()).paginate(page=page,
+                                                                                                per_page=Config.PER_PAGE)
 
     return render_template('home_movie_detail.html', movie_obj=movie_obj, form=form, page_data=page_data)
 
@@ -256,7 +259,9 @@ def edit_password():
 @home.route('/comments/<int:page>/', methods=['GET'])
 @user_login_req
 def comments(page=1):
-    page_data = Comment.query.filter_by(user_id=session['user_id']).order_by(Comment.created_at.desc(), Comment.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = Comment.query.filter_by(user_id=session['user_id']).order_by(Comment.created_at.desc(),
+                                                                             Comment.id.desc()).paginate(page=page,
+                                                                                                         per_page=Config.PER_PAGE)
 
     return render_template('home_comments.html', page_data=page_data)
 
@@ -272,7 +277,35 @@ def login_log(page=1):
 
 
 # 电影收藏
-@home.route('/movie_collect/', methods=['GET'])
+@home.route('/movie_collect/<int:page>/', methods=['GET'])
 @user_login_req
-def movie_collect():
-    return render_template('home_movie_collect.html')
+def movie_collect(page=1):
+    page_data = MovieCollect.query.filter_by(user_id=session['user_id']).order_by(MovieCollect.created_at.desc(),
+                                                                                  MovieCollect.id.desc()).paginate(
+        page=page, per_page=Config.PER_PAGE)
+    return render_template('home_movie_collect.html', page_data=page_data)
+
+
+# 添加电影收藏
+@home.route('/movie_add_collect/', methods=['GET'])
+@user_login_req
+def movie_add_collect():
+    data = dict(ok=1)
+    u_id = request.args.get('u_id', None)
+    m_id = request.args.get('m_id', None)
+    if u_id is None or m_id is None:
+        data = dict(ok=0)
+        return json.dumps(data)
+
+    u_id = int(u_id)
+    m_id = int(m_id)
+
+    movie_collect_obj = MovieCollect.query.filter_by(user_id=u_id, movie_id=m_id).count()
+    if movie_collect_obj == 1:
+        data = dict(ok=0)
+    if movie_collect_obj == 0:
+        movie_collect_obj = MovieCollect(user_id=u_id, movie_id=m_id)
+        db.session.add(movie_collect_obj)
+        db.session.commit()
+        data = dict(ok=1)
+    return json.dumps(data)
