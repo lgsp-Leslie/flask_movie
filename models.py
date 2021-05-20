@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from flask_redis import FlaskRedis
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash
 
 import constants
 
 db = SQLAlchemy()
-
+rd = FlaskRedis()
 
 class User(db.Model):
     """ 会员用户 """
