@@ -1,3 +1,4 @@
+from flask_script import Manager
 from flask import Flask, render_template
 
 import conf
@@ -6,6 +7,13 @@ from home.views import home
 from models import db, rd
 
 app = Flask(__name__)
+
+# 关闭调试模式
+app.debug = False
+
+# 添加一个命令行解析器
+manager = Manager(app)
+
 # 从配置文件加载配置
 app.config.from_object(conf.Config)
 
