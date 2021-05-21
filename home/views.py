@@ -95,6 +95,7 @@ def search(page=1):
     movie_obj = Movie.query.filter(Movie.name.ilike('%' + key + '%'))
     movie_count = movie_obj.count()
     page_data = movie_obj.order_by(Movie.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data.key = key
     return render_template('home_search.html', key=key, page_data=page_data, movie_count=movie_count)
 
 
@@ -111,20 +112,21 @@ def movie_detail(movie_id=None, page=1):
     movie_obj = Movie.query.get_or_404(int(movie_id))
 
     form = CommentForm()
-    if session['user'] and form.validate_on_submit():
-        data = form.data
-        comment_obj = Comment(
-            content=data['content'],
-            movie_id=movie_id,
-            user_id=session['user_id'],
-        )
-        db.session.add(comment_obj)
-        movie_obj.comment_count = movie_obj.comment_count + 1
-        db.session.add(movie_obj)
+    if form.validate_on_submit():
+        if session['user']:
+            data = form.data
+            comment_obj = Comment(
+                content=data['content'],
+                movie_id=movie_id,
+                user_id=session['user_id'],
+            )
+            db.session.add(comment_obj)
+            movie_obj.comment_count = movie_obj.comment_count + 1
+            db.session.add(movie_obj)
 
-        db.session.commit()
-        flash('评论成功', 'success')
-        return redirect(url_for('home.movie_detail', movie_id=movie_id, page=1))
+            db.session.commit()
+            flash('评论成功', 'success')
+            return redirect(url_for('home.movie_detail', movie_id=movie_id, page=1))
 
     movie_obj.play_count = movie_obj.play_count + 1
     db.session.add(movie_obj)

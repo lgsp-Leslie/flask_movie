@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>热映电影</title>
     <link rel="stylesheet" href="{{ url_for('static',filename='base/css/bootstrap.min.css') }}">
-{#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home/animation/css/style.css') }}">#}
+    {#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='home/animation/css/style.css') }}">#}
 </head>
 <body>
 <!--轮播图 开始 -->
@@ -42,37 +42,38 @@
 
 
 <!-- bootstrap轮播图 开始 -->
-<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
-    <!-- Indicators -->
-    <ol class="carousel-indicators">
-        {% for item in data %}
-            <li data-target="#carousel-example-generic" data-slide-to="{{ item.id - 1 }}"></li>
-        {% endfor %}
-    </ol>
+    <div id="carousel" class="carousel slide" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+            {% for item in data %}
+                <li data-target="#carousel" data-slide-to="{{ item.id - 1 }}"></li>
+            {% endfor %}
+        </ol>
 
-    <!-- Wrapper for slides -->
-    <div class="carousel-inner" role="listbox">
-        {% for item in data %}
-            <div class="item">
-                <img class="img-responsive center-block" src="{{ url_for('static', filename='uploads/' + item.logo) }}" alt="{{ item.name }}">
-                <div class="carousel-caption">
-                    <h3>{{ item.name }}</h3>
-                    <p>{{ item.info|truncate(9, killwords=True, leeway=0) }}</p>
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+            {% for item in data %}
+                <div class="item">
+                    <img style="height: 900px;" class="img-responsive center-block"
+                         src="{{ url_for('static', filename='uploads/' + item.logo) }}" alt="{{ item.name }}">
+                    <div class="carousel-caption" style="background-color: #000; opacity: 0.6;">
+                        <h3>{{ item.name }}</h3>
+                        <p>{{ item.info|truncate(59, killwords=True, leeway=0) }}</p>
+                    </div>
                 </div>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
 
-    <!-- Controls -->
-    <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-    </a>
-    <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-    </a>
-</div>
+        <!-- Controls -->
+        <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#carousel" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
 <!-- bootstrap轮播图 结束-->
 
 {#<script type="text/javascript" src="{{ url_for('static', filename='home/animation/js/jquery.js') }}"></script>#}

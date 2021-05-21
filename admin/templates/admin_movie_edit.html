@@ -49,7 +49,7 @@
                                     {{ form.logo.label }}
                                     {{ form.logo }}
                                     {{ form_field_errors(form.logo.errors) }}
-                                    <img src="{{ url_for('static', filename='uploads/' + movie_obj.logo) }}" style="margin-top:5px;" class="img-responsive"
+                                    <img src="{{ url_for('static', filename='uploads/' + movie_obj.logo) }}" style="margin-top:5px; height:300px;" class="img-responsive"
                                          alt="">
                                 </div>
                                 <div class="form-group">

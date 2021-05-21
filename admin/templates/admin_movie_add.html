@@ -98,36 +98,36 @@
     </script>
 
     <!--播放页面-->
-    <script src="{{ url_for('static', filename='base/jwplayer/jwplayer.js') }}"></script>
-    <script type="text/javascript">
-        jwplayer.key = "P9VTqT/X6TSP4gi/hy1wy23BivBhjdzVjMeOaQ==";
-
-    </script>
-    <script type="text/javascript">
-        jwplayer("moviecontainer").setup({
-            flashplayer: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}",
-            playlist: [{
-                file: "{{ url_for('static', filename='home/video/htpy.mp4') }}",
-                title: "环太平洋"
-            }],
-            modes: [{
-                type: "html5"
-            }, {
-                type: "flash",
-                src: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}"
-            }, {
-                type: "download"
-            }],
-            skin: {
-                name: "vapor"
-            },
-            "playlist.position": "left",
-            "playlist.size": 200,
-            height: 250,
-            width: 387,
-        });
-
-    </script>
+{#    <script src="{{ url_for('static', filename='base/jwplayer/jwplayer.js') }}"></script>#}
+{#    <script type="text/javascript">#}
+{#        jwplayer.key = "P9VTqT/X6TSP4gi/hy1wy23BivBhjdzVjMeOaQ==";#}
+{##}
+{#    </script>#}
+{#    <script type="text/javascript">#}
+{#        jwplayer("moviecontainer").setup({#}
+{#            flashplayer: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}",#}
+{#            playlist: [{#}
+{#                file: "{{ url_for('static', filename='home/video/htpy.mp4') }}",#}
+{#                title: "环太平洋"#}
+{#            }],#}
+{#            modes: [{#}
+{#                type: "html5"#}
+{#            }, {#}
+{#                type: "flash",#}
+{#                src: "{{ url_for('static', filename='base/jwplayer/jwplayer.flash.swf') }}"#}
+{#            }, {#}
+{#                type: "download"#}
+{#            }],#}
+{#            skin: {#}
+{#                name: "vapor"#}
+{#            },#}
+{#            "playlist.position": "left",#}
+{#            "playlist.size": 200,#}
+{#            height: 250,#}
+{#            width: 387,#}
+{#        });#}
+{##}
+{#    </script>#}
     <script>
         $(document).ready(function () {
             $('#input_release_time').datepicker({

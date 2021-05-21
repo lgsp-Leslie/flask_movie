@@ -17,14 +17,25 @@
                                 <li class="item cl">
                                     <a href="user.html">
                                         <i class="avatar size-L radius">
-                                            <img alt="{{ item.user.username }}" src="{{ url_for('static', filename='uploads/user/avatar/' + item.user.avatar) }}" class="img-circle"
-                                                 style="border:1px solid #abcdef; width: 50px; height: 50px;">
+                                            {% if item.user.avatar %}
+                                                <img alt="{{ item.user.username }}"
+                                                     src="{{ url_for('static', filename='uploads/user/avatar/' + item.user.avatar) }}"
+                                                     class="img-circle"
+                                                     style="border:1px solid #abcdef; width: 50px; height: 50px;">
+                                            {% else %}
+                                                <img alt="50x50"
+                                                     data-src="holder.js/50x50"
+                                                     class="img-circle"
+                                                     style="border:1px solid #abcdef; width: 50px; height: 50px;">
+                                            {% endif %}
+
                                         </i>
                                     </a>
                                     <div class="comment-main">
                                         <header class="comment-header">
                                             <div class="comment-meta">
-                                                <a class="comment-author" href="javascript:;">{{ item.user.username }}</a>
+                                                <a class="comment-author"
+                                                   href="javascript:;">{{ item.user.username }}</a>
                                                 于
                                                 <time title="2016-12-07 09:12:51" datetime="2016-12-07 09:12:51">
                                                     {{ item.created_at }}

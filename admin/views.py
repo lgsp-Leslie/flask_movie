@@ -355,7 +355,7 @@ def preview_add():
 @admin_login_req
 @admin_auth
 def preview_list(page=1):
-    page_data = Preview.query.order_by(Preview.created_at.desc()).paginate(page=page, per_page=Config.PER_PAGE)
+    page_data = Preview.query.order_by(Preview.created_at.desc(), Preview.id.desc()).paginate(page=page, per_page=Config.PER_PAGE)
     return render_template('admin_preview_list.html', page_data=page_data)
 
 

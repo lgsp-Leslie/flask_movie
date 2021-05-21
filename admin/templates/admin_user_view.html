@@ -59,7 +59,17 @@
                                 <tr>
                                     <td class="td_bd">头像：</td>
                                     <td>
-                                        <img style="height: 100px; width: auto;" src="{{ url_for('static', filename='uploads/user/avatar/' + user_obj.avatar) }}" class="img-responsive" alt="">
+                                        {% if item.user.avatar %}
+                                            <img alt="100x100"
+                                                 src="{{ url_for('static', filename='uploads/user/avatar/' + user_obj.avatar) }}"
+                                                 class="img-circle"
+                                                 style="width: 100px; height: 100px;">
+                                        {% else %}
+                                            <img alt="100x100"
+                                                 data-src="holder.js/100x100"
+                                                 class="img-circle"
+                                                 style="width: 100px; height: 100px;">
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 <tr>
